@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SynapseSpark — Ideas spread like signal</title>
+<meta name="description" content="Start with one word. Watch it branch in five directions. Follow the sparks.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8Z' fill='%237C3AED'/><circle cx='12' cy='12' r='2.5' fill='%23A78BFA'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0D1117;
+    --bg-secondary: #161B22;
+    --bg-tertiary: #1C2333;
+    --bg-elevated: #1A1E2E;
+    --fg: #E6EDF3;
+    --fg-secondary: #8B949E;
+    --fg-tertiary: #484F58;
+    --accent: #7C3AED;
+    --accent-hover: #8B5CF6;
+    --accent-soft: rgba(124,58,237,0.15);
+    --accent-2: #DB2777;
+    --accent-2-soft: rgba(219,39,119,0.12);
+    --accent-3: #3B82F6;
+    --accent-3-soft: rgba(59,130,246,0.1);
+    --green: #6A9955;
+    --green-soft: rgba(106,153,85,0.15);
+    --variable-blue: #9CDCFE;
+    --variable-blue-soft: rgba(156,220,254,0.12);
+    --border: #30363D;
+    --border-strong: #484F58;
+    --glass-bg: rgba(13,17,23,0.88);
+    --glass-border: rgba(255,255,255,0.06);
+    --gutter: #484F58;
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --font-display: 'Manrope', 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter', 'Segoe UI', 'PingFang SC', system-ui, sans-serif;
+    --font-mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+    --font-decorative: 'Georgia', 'Times New Roman', 'STSong', serif;
+    --nav-h: 56px;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.22, 0.61, 0.36, 1);
+    --z-nav: 100;
+    --z-overlay: 50;
+    --z-base: 10;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  ::selection { background: rgba(37,99,235,0.25); color: var(--fg); }
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    position: relative;
+  }
+  /* Grain / noise texture overlay — dark-room observatory film grain */
+  .grain-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    pointer-events: none; opacity: 0.038;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat; background-size: 180px 180px;
+  }
+
+  /* Typography */
+  .ff-display { font-family: var(--font-display); }
+  .hero-title {
+    font-family: var(--font-display);
+    font-size: clamp(3.2rem, 7vw, 5.8rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+  .body-text {
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    color: var(--fg-secondary);
+    line-height: 1.65;
+  }
+  .caption {
+    font-size: 13px;
+    color: var(--fg-tertiary);
+    line-height: 1.5;
+  }
+
+  /* Layout */
+  .container { max-width: 1240px; margin: 0 auto; padding: 0 32px; }
+
+  /* Nav - frosted glass */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-nav);
+    height: var(--nav-h);
+    display: flex; align-items: center; gap: 10px;
+    padding: 0 28px;
+    background: var(--glass-bg);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    transition: border-color 350ms var(--ease-out), background 350ms var(--ease-out);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .nav.scrolled { border-bottom-color: var(--border); }
+
+  /* Buttons - confirmation-focused hover + press system */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: var(--font-display); font-weight: 700; font-size: 14px;
+    padding: 11px 26px; border-radius: 9999px; border: none; cursor: pointer;
+    text-decoration: none;
+    letter-spacing: -0.01em; white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    position: relative; overflow: hidden; isolation: isolate;
+    /* Per animate.md: separate property transitions, not 'all' */
+    transition:
+      transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 250ms cubic-bezier(0.16, 1, 0.3, 1),
+      background-color 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+  }
+
+  /* Hover: lift + shadow confirm (animate.md: scale 1.02-1.05 + shadow) */
+  .btn:hover {
+    transform: translateY(-1.5px) scale(1.025);
+  }
+
+  /* Active: press-down confirmation (animate.md: 0.95 → 1 snap, 100-150ms) */
+  .btn:active {
+    transform: scale(0.955);
+    transition-duration: 100ms;
+  }
+
+  /* ── Ripple overlay (JS-driven) ── */
+  .btn .ripple {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: scale(0); animation: ripple-expand 520ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    pointer-events: none; z-index: 0;
+  }
+  @keyframes ripple-expand {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  .btn > * { position: relative; z-index: 1; }
+
+  /* ── Primary ── */
+  .btn-primary {
+    background: var(--accent); color: #FFFFFF;
+    box-shadow: 0 2px 0 rgba(109,40,217,0.4), 0 4px 12px rgba(124,58,237,0.12);
+  }
+  .btn-primary:hover {
+    background: #7E3FF0;
+    box-shadow: 0 3px 0 rgba(109,40,217,0.5), 0 8px 24px rgba(124,58,237,0.18);
+  }
+  .btn-primary:active {
+    background: var(--accent-hover);
+    box-shadow: 0 1px 0 rgba(109,40,217,0.4), 0 2px 6px rgba(124,58,237,0.1);
+  }
+
+  /* ── Secondary ── */
+  .btn-secondary {
+    background: var(--bg-tertiary); color: var(--fg);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .btn-secondary:hover {
+    background: var(--border-strong);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  }
+  .btn-secondary:active {
+    background: var(--border);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .btn-secondary .ripple { background: rgba(255,255,255,0.12); }
+
+  /* ── Magnetic typography (overdrive: cursor-responsive characters) ── */
+  .mag-title { position: relative; }
+  .mag-char {
+    display: inline-block;
+    transition: transform 380ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+    position: relative;
+  }
+  .mag-accent { color: var(--accent); }
+  .mag-accent .mag-char { color: inherit; }
+  /* Glow aura under cursor — positioned by JS */
+  .mag-glow {
+    position: absolute; pointer-events: none; z-index: 5;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, rgba(236,72,153,0.03) 50%, transparent 70%);
+    transform: translate(-50%, -50%);
+    opacity: 0; transition: opacity 300ms ease;
+  }
+  .mag-title:hover .mag-glow { opacity: 1; }
+
+  /* ── Spring entrance characters ── */
+  .spring-char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 500ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .spring-char.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Mobile: disable magnetic effect, keep spring */
+  @media (pointer: coarse) {
+    .mag-char { transition: none; }
+    .mag-glow { display: none; }
+  }
+
+  /* Bento Grid */
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 18px;
+    grid-auto-rows: minmax(180px, auto);
+  }
+  .bento-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    display: flex; flex-direction: column;
+    transition: border-color 300ms var(--ease-out), box-shadow 300ms var(--ease-out), transform 350ms var(--ease-spring);
+    position: relative; overflow: hidden;
+    cursor: default;
+  }
+  .bento-card.interactive { cursor: pointer; }
+  .bento-card.interactive:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+  }
+
+  /* Bento spans */
+  .bc-3 { grid-column: span 3; }
+  .bc-4 { grid-column: span 4; }
+  .bc-5 { grid-column: span 5; }
+  .bc-6 { grid-column: span 6; }
+  .bc-7 { grid-column: span 7; }
+  .bc-8 { grid-column: span 8; }
+  .bc-12 { grid-column: span 12; }
+  .br-2 { grid-row: span 2; }
+
+  /* Bento accent dots */
+  .bento-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    position: absolute; top: 24px; right: 24px;
+  }
+  .bento-dot.purple { background: var(--accent); }
+  .bento-dot.pink { background: var(--accent-2); }
+  .bento-dot.blue { background: var(--accent-3); }
+
+  /* Icon wrapper */
+  .icon-box {
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-sm); margin-bottom: 16px; flex-shrink: 0;
+  }
+  .icon-box.purple { background: var(--accent-soft); color: var(--accent); }
+  .icon-box.pink { background: var(--accent-2-soft); color: var(--accent-2); }
+  .icon-box.blue { background: var(--accent-3-soft); color: var(--accent-3); }
+
+  /* Step number */
+  .step-num {
+    font-family: var(--font-display); font-size: 64px; font-weight: 700;
+    color: var(--accent); line-height: 1; margin-bottom: -8px;
+  }
+
+  /* Stats */
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  /* Tag / Pill */
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 5px 14px; border-radius: 9999px;
+    font-family: var(--font-display); font-size: 12px; font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+  .tag.purple { background: var(--accent-soft); color: var(--accent); }
+  .tag.pink { background: var(--accent-2-soft); color: var(--accent-2); }
+  .tag.blue { background: var(--accent-3-soft); color: var(--accent-3); }
+
+  /* Star-field particles on hero section */
+  .hero-starfield {
+    position: relative;
+  }
+  .hero-starfield::before {
+    content: '';
+    position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(0.8px 0.8px at 12% 8%, rgba(167,139,250,0.55) 50%, transparent 50%),
+      radial-gradient(0.6px 0.6px at 28% 18%, rgba(196,181,253,0.45) 50%, transparent 50%),
+      radial-gradient(0.7px 0.7px at 45% 5%, rgba(167,139,250,0.5) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 62% 12%, rgba(196,181,253,0.4) 50%, transparent 50%),
+      radial-gradient(0.9px 0.9px at 78% 8%, rgba(167,139,250,0.55) 50%, transparent 50%),
+      radial-gradient(0.6px 0.6px at 88% 16%, rgba(196,181,253,0.45) 50%, transparent 50%),
+      radial-gradient(0.7px 0.7px at 8% 28%, rgba(139,92,246,0.4) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 32% 25%, rgba(167,139,250,0.35) 50%, transparent 50%),
+      radial-gradient(0.8px 0.8px at 55% 22%, rgba(196,181,253,0.4) 50%, transparent 50%),
+      radial-gradient(0.6px 0.6px at 70% 28%, rgba(139,92,246,0.35) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 85% 32%, rgba(167,139,250,0.3) 50%, transparent 50%),
+      radial-gradient(0.7px 0.7px at 18% 38%, rgba(196,181,253,0.35) 50%, transparent 50%),
+      radial-gradient(0.6px 0.6px at 40% 35%, rgba(139,92,246,0.3) 50%, transparent 50%),
+      radial-gradient(0.8px 0.8px at 65% 38%, rgba(167,139,250,0.4) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 92% 35%, rgba(196,181,253,0.3) 50%, transparent 50%),
+      radial-gradient(0.6px 0.6px at 5% 48%, rgba(139,92,246,0.3) 50%, transparent 50%),
+      radial-gradient(0.7px 0.7px at 22% 45%, rgba(167,139,250,0.35) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 50% 42%, rgba(196,181,253,0.3) 50%, transparent 50%),
+      radial-gradient(0.6px 0.6px at 75% 48%, rgba(139,92,246,0.3) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 95% 45%, rgba(167,139,250,0.25) 50%, transparent 50%);
+  }
+  /* Twinkle animation for distant stars */
+  .star-twinkle {
+    position: absolute; border-radius: 50%;
+    background: rgba(196,181,253,0.5);
+    pointer-events: none; z-index: 0;
+    animation: twinkle var(--twinkle-dur, 3s) ease-in-out infinite;
+    animation-delay: var(--twinkle-delay, 0s);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 0.7; transform: scale(1.2); }
+  }
+
+  /* Hero abstract visual */
+  .hero-visual {
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-visual circle[stroke="var(--accent)"] animate { animation: none; }
+  }
+
+  /* Feature row (dense 2-col) */
+  .feature-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .feature-cell {
+    background: var(--bg-secondary);
+    padding: 28px 32px;
+    display: flex; gap: 18px; align-items: flex-start;
+    transition: background 280ms var(--ease-out), box-shadow 280ms var(--ease-out);
+  }
+  .feature-cell:hover { background: var(--bg-tertiary); box-shadow: inset 0 0 0 1px rgba(124,58,237,0.15); }
+
+  /* Horizontal scroll track */
+  .h-scroll-wrap {
+    overflow-x: auto; overflow-y: hidden; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+  .h-scroll-wrap::-webkit-scrollbar { display: none; }
+  .h-scroll-wrap::before,
+  .h-scroll-wrap::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 48px;
+    z-index: 2; pointer-events: none; transition: opacity 400ms ease;
+  }
+  .h-scroll-wrap::before  { left: 0;  background: linear-gradient(to right, rgba(13,17,23,0.9), transparent); }
+  .h-scroll-wrap::after   { right: 0; background: linear-gradient(to left,  rgba(13,17,23,0.9), transparent); }
+  .h-scroll-wrap.at-start::before  { opacity: 0; }
+  .h-scroll-wrap.at-end::after     { opacity: 0; }
+  .h-scroll-track {
+    display: flex; gap: 18px;
+    padding: 8px 0;
+  }
+  .h-scroll-card {
+    flex: 0 0 340px; min-height: 240px;
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 28px;
+    display: flex; flex-direction: column; justify-content: space-between;
+    transition: border-color 280ms var(--ease-out), box-shadow 280ms var(--ease-out), transform 350ms var(--ease-spring);
+    border-top: 3px solid transparent;
+  }
+  .h-scroll-card:nth-child(1) { border-top-color: var(--accent); }
+  .h-scroll-card:nth-child(2) { border-top-color: rgba(124,58,237,0.5); }
+  .h-scroll-card:nth-child(3) { border-top-color: rgba(124,58,237,0.35); }
+  .h-scroll-card:nth-child(4) { border-top-color: rgba(124,58,237,0.2); }
+  .h-scroll-card:hover {
+    border-color: var(--border-strong);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transform: translateY(-3px);
+  }
+
+  /* CTA section (dark block) */
+  .cta-dark {
+    background: var(--bg);
+    color: #FBFBFD;
+    position: relative; z-index: 1;
+    border-top: 1px solid rgba(124,58,237,0.18);
+  }
+  .cta-dark::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 55% 65% at 25% 35%, rgba(124,58,237,0.14) 0%, transparent 55%),
+      radial-gradient(ellipse 45% 55% at 70% 55%, rgba(139,92,246,0.10) 0%, transparent 50%),
+      radial-gradient(ellipse 35% 40% at 85% 20%, rgba(219,39,119,0.06) 0%, transparent 50%),
+      radial-gradient(circle 180px at 50% 80%, rgba(124,58,237,0.08) 0%, transparent 60%);
+  }
+  .cta-dark::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(0.5px 0.5px at 10% 15%, rgba(196,181,253,0.4) 50%, transparent 50%),
+      radial-gradient(0.6px 0.6px at 30% 8%, rgba(167,139,250,0.35) 50%, transparent 50%),
+      radial-gradient(0.4px 0.4px at 55% 12%, rgba(196,181,253,0.3) 50%, transparent 50%),
+      radial-gradient(0.7px 0.7px at 75% 18%, rgba(167,139,250,0.4) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 90% 10%, rgba(196,181,253,0.35) 50%, transparent 50%),
+      radial-gradient(0.4px 0.4px at 15% 30%, rgba(167,139,250,0.3) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 40% 25%, rgba(196,181,253,0.25) 50%, transparent 50%),
+      radial-gradient(0.6px 0.6px at 65% 32%, rgba(167,139,250,0.3) 50%, transparent 50%),
+      radial-gradient(0.4px 0.4px at 80% 28%, rgba(196,181,253,0.25) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 25% 45%, rgba(167,139,250,0.2) 50%, transparent 50%),
+      radial-gradient(0.4px 0.4px at 50% 40%, rgba(196,181,253,0.2) 50%, transparent 50%),
+      radial-gradient(0.5px 0.5px at 72% 48%, rgba(167,139,250,0.2) 50%, transparent 50%),
+      radial-gradient(0.4px 0.4px at 88% 45%, rgba(196,181,253,0.15) 50%, transparent 50%);
+  }
+  .cta-dark .container { position: relative; z-index: 1; }
+
+  /* Dark-section buttons */
+  .btn-light {
+    background: #FFFFFF; color: #0D1117;
+    box-shadow: 0 4px 20px rgba(255,255,255,0.1);
+  }
+  .btn-light:hover {
+    background: #F0ECFF;
+    box-shadow: 0 8px 28px rgba(255,255,255,0.18), 0 2px 8px rgba(124,58,237,0.1);
+    transform: translateY(-2px) scale(1.03);
+  }
+  .btn-light:active {
+    background: #E8E0F8;
+    box-shadow: 0 2px 8px rgba(255,255,255,0.12);
+    transform: scale(0.96);
+  }
+  .btn-ghost-dark {
+    background: rgba(255,255,255,0.06); color: #FBFBFD;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: none;
+  }
+  .btn-ghost-dark:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.22);
+    box-shadow: 0 3px 14px rgba(0,0,0,0.15);
+    transform: translateY(-1.5px) scale(1.025);
+  }
+  .btn-ghost-dark:active {
+    background: rgba(255,255,255,0.08);
+    transform: scale(0.96);
+  }
+  .btn-ghost-dark .ripple { background: rgba(255,255,255,0.2); }
+  .btn-light .ripple { background: rgba(0,0,0,0.06); }
+
+  /* Cosmic section separator */
+  .cosmic-sep {
+    max-width: 840px; margin: 0 auto; padding: 0 32px;
+    display: flex; align-items: center; gap: 14px;
+    height: 0;
+  }
+  .cosmic-sep-line {
+    flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124,58,237,0.15) 30%, rgba(139,92,246,0.2) 60%, transparent);
+  }
+  .cosmic-sep-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(167,139,250,0.5);
+    box-shadow: 0 0 6px rgba(124,58,237,0.3);
+    flex-shrink: 0;
+  }
+  .cosmic-sep-line:first-child { background: linear-gradient(90deg, transparent, rgba(124,58,237,0.15) 70%, rgba(139,92,246,0.2)); }
+  .cosmic-sep-line:last-child  { background: linear-gradient(90deg, rgba(139,92,246,0.2), rgba(124,58,237,0.15) 30%, transparent 70%); }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+    html { scroll-behavior: auto; }
+  }
+
+  /* Focus visible */
+  :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .bento { grid-template-columns: repeat(6, 1fr); gap: 14px; }
+    .bc-3, .bc-4, .bc-5, .bc-6, .bc-7, .bc-8 { grid-column: span 6; }
+    .br-2 { grid-row: span 1; }
+    .hero-row { grid-template-columns: 1fr !important; }
+    .feature-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .container { padding: 0 20px; }
+    .hero-title { font-size: clamp(2.4rem, 8vw, 3.5rem); }
+    .bento { grid-template-columns: 1fr; gap: 12px; }
+    .bc-3, .bc-4, .bc-5, .bc-6, .bc-7, .bc-8 { grid-column: span 1; }
+    .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 28px !important; }
+    .h-scroll-card { flex: 0 0 280px; }
+  }
+  @media (max-width: 480px) {
+    .container { padding: 0 16px; }
+    .hero-title { font-size: clamp(2rem, 9vw, 2.6rem); }
+    .section-title { font-size: clamp(1.6rem, 6vw, 2rem); }
+    .stats-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+    .h-scroll-card { flex: 0 0 250px; min-height: 200px; padding: 20px; }
+    section[style*="padding"] { padding-top: 50px !important; padding-bottom: 64px !important; }
+    .hero-row { gap: 40px; }
+    .bento-card { padding: 22px; }
+    .feature-cell { padding: 20px 22px; }
+    .step-num { font-size: 48px; }
+    .nav { padding: 0 14px; }
+    .nav .btn-primary { padding: 6px 14px !important; font-size: 13px !important; }
+  }
+  @media (pointer: coarse) {
+    .btn { min-height: 44px; padding: 12px 28px; }
+  }
+
+  /* Landscape phone — keep stats 2-col when wider than tall */
+  @media (max-width: 768px) and (orientation: landscape) {
+    .hero-row { gap: 32px; }
+    section[style*="min-height:100dvh"] { min-height: auto !important; }
+  }
+
+  /* Settings button + dropdown */
+  .settings-wrap {
+    position: relative; display: inline-flex;
+  }
+  .settings-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 50%; border: none;
+    background: var(--bg-tertiary); color: var(--fg-secondary);
+    cursor: pointer;
+    transition: background 220ms var(--ease-out), color 220ms var(--ease-out), transform 250ms var(--ease-spring);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .settings-btn:hover { background: var(--border-strong); color: var(--fg); }
+  .settings-btn:active { transform: scale(0.92); }
+  .settings-btn.open { background: var(--accent); color: #FFF; }
+  .settings-btn .gear-icon {
+    transition: transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .settings-btn.open .gear-icon { transform: rotate(90deg); }
+
+  .settings-dropdown {
+    position: absolute; top: calc(100% + 10px); right: 0;
+    min-width: 200px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    opacity: 0; transform: translateY(-8px) scale(0.95);
+    pointer-events: none;
+    transition: opacity 250ms var(--ease-out), transform 350ms var(--ease-spring);
+    z-index: 300;
+  }
+  .settings-dropdown.open {
+    opacity: 1; transform: translateY(0) scale(1);
+    pointer-events: all;
+  }
+  .settings-section {
+    padding: 6px 0;
+  }
+  .settings-section + .settings-section {
+    border-top: 1px solid var(--border);
+  }
+  .settings-section-label {
+    font-family: var(--font-display); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--fg-tertiary);
+    padding: 6px 12px 4px;
+  }
+  .settings-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 10px 12px; border-radius: var(--radius-sm);
+    border: none; background: transparent;
+    font-family: var(--font-display); font-size: 13px; font-weight: 600;
+    color: var(--fg-secondary); cursor: pointer;
+    transition: background 180ms ease, color 180ms ease;
+    text-align: left; letter-spacing: -0.01em;
+  }
+  .settings-item:hover { background: var(--bg-tertiary); color: var(--fg); }
+  .settings-item.active { color: var(--accent); }
+  .settings-item .s-icon {
+    width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; opacity: 0.7;
+  }
+  .settings-item:hover .s-icon { opacity: 1; }
+  .settings-lang-row {
+    display: flex; gap: 3px; padding: 4px 8px;
+  }
+  .settings-lang-chip {
+    flex: 1; padding: 7px 0; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: transparent;
+    font-family: var(--font-display); font-size: 12px; font-weight: 600;
+    color: var(--fg-secondary); cursor: pointer;
+    transition: all 180ms ease;
+    text-align: center;
+  }
+  .settings-lang-chip:hover { border-color: var(--border-strong); color: var(--fg); }
+  .settings-lang-chip.active {
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  /* Login modal */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    background: rgba(0,0,0,0.55);
+    opacity: 0; pointer-events: none;
+    transition: opacity 300ms var(--ease-out);
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-card {
+    width: 100%; max-width: 400px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: 32px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    transform: translateY(12px) scale(0.97);
+    transition: transform 400ms var(--ease-spring);
+  }
+  .modal-overlay.open .modal-card { transform: translateY(0) scale(1); }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .modal-title {
+    font-family: var(--font-display); font-size: 20px; font-weight: 700;
+    color: var(--fg); letter-spacing: -0.02em;
+  }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 50%; border: none;
+    background: var(--bg-tertiary); color: var(--fg-secondary);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; transition: background 180ms ease, color 180ms ease;
+  }
+  .modal-close:hover { background: var(--border-strong); color: var(--fg); }
+  .modal-field {
+    display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;
+  }
+  .modal-label {
+    font-family: var(--font-display); font-size: 12px; font-weight: 700;
+    color: var(--fg-secondary); letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .modal-input {
+    width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--bg-deep);
+    font-family: var(--font-body); font-size: 15px; color: var(--fg);
+    outline: none; caret-color: var(--accent);
+    transition: border-color 200ms ease;
+  }
+  .modal-input:focus { border-color: var(--accent); }
+  .modal-input::placeholder { color: var(--fg-tertiary); }
+  .modal-submit {
+    width: 100%; padding: 13px; border-radius: var(--radius-pill);
+    border: none; background: var(--accent); color: #FFF;
+    font-family: var(--font-display); font-size: 15px; font-weight: 700;
+    cursor: pointer; letter-spacing: -0.01em;
+    transition: background 200ms ease, transform 150ms var(--ease-out);
+    margin-top: 8px;
+  }
+  .modal-submit:hover { background: var(--accent-hover); }
+
+  /* Light theme overrides */
+  [data-theme="light"] {
+    --bg: #F5F3F8;
+    --bg-secondary: #FFFFFF;
+    --bg-tertiary: #EDE9F5;
+    --bg-elevated: #FFFFFF;
+    --fg: #1A1523;
+    --fg-secondary: #5C5470;
+    --fg-tertiary: #8D86A0;
+    --border: #E4DEF0;
+    --border-strong: #C8C0D8;
+    --glass-bg: rgba(245,243,248,0.88);
+    --glass-border: rgba(0,0,0,0.06);
+    --accent-soft: rgba(124,58,237,0.1);
+    --accent-2-soft: rgba(219,39,119,0.08);
+    --accent-3-soft: rgba(59,130,246,0.08);
+  }
+  [data-theme="light"] .btn-primary {
+    color: #FFFFFF;
+  }
+  [data-theme="light"] .btn-secondary {
+    background: var(--bg-tertiary); color: var(--fg);
+  }
+  [data-theme="light"] .btn-light {
+    background: var(--accent); color: #FFFFFF;
+  }
+  [data-theme="light"] .btn-ghost-dark {
+    background: rgba(0,0,0,0.04); color: var(--fg);
+    border-color: rgba(0,0,0,0.1);
+  }
+  [data-theme="light"] .cta-dark {
+    background: var(--bg);
+    color: var(--fg);
+    border-top-color: rgba(124,58,237,0.1);
+  }
+  [data-theme="light"] .bento-card {
+    background: var(--bg-secondary);
+  }
+  [data-theme="light"] .feature-cell {
+    background: var(--bg-secondary);
+  }
+  [data-theme="light"] .h-scroll-card {
+    background: var(--bg-secondary);
+  }
+  [data-theme="light"] .h-scroll-wrap::before {
+    background: linear-gradient(to right, rgba(245,243,248,0.9), transparent);
+  }
+  [data-theme="light"] .h-scroll-wrap::after {
+    background: linear-gradient(to left, rgba(245,243,248,0.9), transparent);
+  }
+  [data-theme="light"] .nav {
+    --glass-bg: rgba(245,243,248,0.88);
+    --glass-border: rgba(0,0,0,0.06);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(120px);
+    z-index: 9999;
+    background: var(--bg-elevated); color: var(--fg);
+    font-family: var(--font-display); font-size: 14px; font-weight: 600;
+    padding: 14px 28px; border-radius: 9999px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    pointer-events: none; opacity: 0;
+    transition: transform 380ms cubic-bezier(0.16,1,0.3,1), opacity 280ms ease-out;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+<div class="grain-overlay" aria-hidden="true"></div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a href="#" style="display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--fg);">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8Z" fill="#7C3AED"/><circle cx="12" cy="12" r="2.5" fill="#A78BFA"/></svg>
+    <span style="font-family:var(--font-decorative);font-size:18px;letter-spacing:0.02em;">SynapseSpark</span>
+  </a>
+  <div style="flex:1;"></div>
+  <!-- Settings -->
+  <div class="settings-wrap" id="settingsWrap">
+    <button class="settings-btn" id="settingsBtn" aria-label="Settings" aria-expanded="false">
+      <svg class="gear-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    </button>
+    <div class="settings-dropdown" id="settingsDropdown">
+      <div class="settings-section">
+        <p class="settings-section-label">Language</p>
+        <div class="settings-lang-row">
+          <button class="settings-lang-chip active" data-nav-lang="en">EN</button>
+          <button class="settings-lang-chip" data-nav-lang="zh-Hans">简中</button>
+          <button class="settings-lang-chip" data-nav-lang="zh-Hant">繁中</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <button class="settings-item" id="navLoginBtn">
+          <span class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></span>
+          Login
+        </button>
+        <button class="settings-item" id="navPricingBtn">
+          <span class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+          <span data-i18n="nav.pricing">Recharge</span>
+        </button>
+        <button class="settings-item" id="navThemeBtn">
+          <span class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
+          Appearance
+        </button>
+      </div>
+    </div>
+  </div>
+  <a href="explore.html" class="btn btn-primary" style="padding:8px 22px;font-size:13px;" data-i18n="nav.cta">Try Now</a>
+</nav>
+
+<!-- HERO - Asymmetric split -->
+<section class="hero-starfield" style="padding:120px 0 80px;min-height:100dvh;display:flex;align-items:center;position:relative;z-index:1;">
+  <!-- Twinkling distant stars -->
+  <div class="star-twinkle" style="top:10%;left:5%;width:2.5px;height:2.5px;--twinkle-dur:3.5s;--twinkle-delay:0s;"></div>
+  <div class="star-twinkle" style="top:8%;left:25%;width:2px;height:2px;--twinkle-dur:4.2s;--twinkle-delay:0.8s;"></div>
+  <div class="star-twinkle" style="top:15%;left:48%;width:3px;height:3px;--twinkle-dur:3.8s;--twinkle-delay:1.5s;"></div>
+  <div class="star-twinkle" style="top:6%;left:72%;width:2px;height:2px;--twinkle-dur:4.5s;--twinkle-delay:0.3s;"></div>
+  <div class="star-twinkle" style="top:20%;left:90%;width:2.5px;height:2.5px;--twinkle-dur:3.2s;--twinkle-delay:2s;"></div>
+  <div class="star-twinkle" style="top:30%;left:15%;width:1.5px;height:1.5px;--twinkle-dur:5s;--twinkle-delay:1.2s;"></div>
+  <div class="star-twinkle" style="top:35%;left:82%;width:2px;height:2px;--twinkle-dur:4s;--twinkle-delay:0.5s;"></div>
+  <div class="star-twinkle" style="top:42%;left:55%;width:1.5px;height:1.5px;--twinkle-dur:3.6s;--twinkle-delay:2.5s;"></div>
+  <div class="container" style="width:100%;position:relative;z-index:1;">
+    <div class="hero-row" style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:1;">
+      <!-- Left: text -->
+      <div class="gsap-hero-text" style="opacity:0;">
+        <p class="eyebrow" data-i18n="hero.eyebrow">SYNAPTIC THINKING TOOL</p>
+        <h1 class="hero-title mag-title" style="margin-bottom:22px;" aria-label="One word sparks a thousand directions">
+          <span data-i18n="hero.title">One word sparks<br>a thousand <span class="mag-accent">directions</span></span>
+        </h1>
+        <p class="body-text" style="margin-bottom:32px;max-width:460px;" data-i18n="hero.body">
+          Start with a single word. Watch it branch into five. Follow the connections you never saw coming.
+        </p>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <a href="explore.html" class="btn btn-primary" style="font-size:15px;padding:14px 36px;" data-i18n="hero.cta1">Try Now</a>
+          <a href="#features" class="btn btn-secondary" style="font-size:15px;padding:14px 36px;" data-i18n="hero.cta2">See How It Works</a>
+        </div>
+      </div>
+      <!-- Right: abstract constellation visual (neural-network metaphor) -->
+      <div class="gsap-hero-demo" style="opacity:0;">
+        <div class="hero-visual" aria-hidden="true">
+          <svg viewBox="0 0 520 440" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+            <defs>
+              <linearGradient id="hero-grad" x1="0" y1="0" x2="520" y2="440" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#7C3AED"/><stop offset="40%" stop-color="#A855F7"/><stop offset="100%" stop-color="#DB2777"/>
+              </linearGradient>
+              <radialGradient id="center-glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#7C3AED" stop-opacity="0.5"/>
+                <stop offset="60%" stop-color="#7C3AED" stop-opacity="0.1"/>
+                <stop offset="100%" stop-color="#7C3AED" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="purple-glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#8B5CF6" stop-opacity="0"/>
+              </radialGradient>
+              <radialGradient id="pink-glow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#DB2777" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#DB2777" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <!-- Ambient center glow -->
+            <circle cx="260" cy="220" r="130" fill="url(#center-glow)"/>
+            <!-- Connection lines — primary spokes -->
+            <g stroke-linecap="round" opacity="0.5">
+              <line x1="260" y1="220" x2="140" y2="100" stroke="#7C3AED" stroke-width="1.4"/>
+              <line x1="260" y1="220" x2="380" y2="80" stroke="#8B5CF6" stroke-width="1.4"/>
+              <line x1="260" y1="220" x2="440" y2="200" stroke="#7C3AED" stroke-width="1.4"/>
+              <line x1="260" y1="220" x2="370" y2="360" stroke="#A855F7" stroke-width="1.2"/>
+              <line x1="260" y1="220" x2="100" y2="320" stroke="#7C3AED" stroke-width="1.2"/>
+              <line x1="260" y1="220" x2="430" y2="330" stroke="#8B5CF6" stroke-width="1"/>
+              <line x1="260" y1="220" x2="70" y2="200" stroke="#7C3AED" stroke-width="1"/>
+            </g>
+            <!-- Secondary connections -->
+            <g stroke-linecap="round" opacity="0.28">
+              <line x1="140" y1="100" x2="60" y2="40" stroke="#7C3AED" stroke-width="0.9"/>
+              <line x1="140" y1="100" x2="190" y2="40" stroke="#A855F7" stroke-width="0.9"/>
+              <line x1="380" y1="80" x2="460" y2="30" stroke="#8B5CF6" stroke-width="0.9"/>
+              <line x1="380" y1="80" x2="340" y2="30" stroke="#7C3AED" stroke-width="0.9"/>
+              <line x1="440" y1="200" x2="490" y2="260" stroke="#A855F7" stroke-width="0.8"/>
+              <line x1="370" y1="360" x2="440" y2="410" stroke="#8B5CF6" stroke-width="0.8"/>
+              <line x1="100" y1="320" x2="40" y2="390" stroke="#7C3AED" stroke-width="0.8"/>
+              <line x1="70" y1="200" x2="30" y2="140" stroke="#8B5CF6" stroke-width="0.8"/>
+              <!-- Cross-connections (resonance) -->
+              <line x1="140" y1="100" x2="380" y2="80" stroke="#DB2777" stroke-width="0.5" opacity="0.5"/>
+              <line x1="440" y1="200" x2="370" y2="360" stroke="#DB2777" stroke-width="0.5" opacity="0.5"/>
+              <line x1="100" y1="320" x2="70" y2="200" stroke="#DB2777" stroke-width="0.5" opacity="0.4"/>
+            </g>
+            <!-- Orbit rings -->
+            <ellipse cx="260" cy="220" rx="160" ry="140" stroke="url(#hero-grad)" stroke-width="1" stroke-dasharray="8 10" opacity="0.4" transform="rotate(-8,260,220)"/>
+            <ellipse cx="260" cy="220" rx="220" ry="190" stroke="#7C3AED" stroke-width="0.6" stroke-dasharray="3 12" opacity="0.12" transform="rotate(12,260,220)"/>
+            <circle cx="260" cy="220" r="80" stroke="#8B5CF6" stroke-width="0.5" opacity="0.18"/>
+            <!-- Satellite nodes — inner ring (larger, more prominent) -->
+            <circle cx="140" cy="100" r="8" fill="url(#purple-glow)" stroke="#7C3AED" stroke-width="2.2"/>
+            <circle cx="140" cy="100" r="3" fill="#A78BFA"/>
+            <circle cx="380" cy="80" r="8" fill="url(#purple-glow)" stroke="#8B5CF6" stroke-width="2.2"/>
+            <circle cx="380" cy="80" r="3" fill="#A78BFA"/>
+            <circle cx="440" cy="200" r="7" fill="rgba(139,92,246,0.2)" stroke="#7C3AED" stroke-width="2"/>
+            <circle cx="440" cy="200" r="2.5" fill="#C4B5FD"/>
+            <circle cx="370" cy="360" r="7" fill="rgba(139,92,246,0.2)" stroke="#A855F7" stroke-width="2"/>
+            <circle cx="370" cy="360" r="2.5" fill="#C4B5FD"/>
+            <circle cx="100" cy="320" r="8" fill="rgba(124,58,237,0.2)" stroke="#7C3AED" stroke-width="2.2"/>
+            <circle cx="100" cy="320" r="3" fill="#A78BFA"/>
+            <circle cx="70" cy="200" r="7" fill="rgba(139,92,246,0.2)" stroke="#8B5CF6" stroke-width="2"/>
+            <circle cx="70" cy="200" r="2.5" fill="#C4B5FD"/>
+            <circle cx="430" cy="330" r="6" fill="rgba(124,58,237,0.18)" stroke="#7C3AED" stroke-width="1.8"/>
+            <circle cx="430" cy="330" r="2" fill="#A78BFA"/>
+            <!-- Satellite nodes — outer ring (smaller, faint = distant stars) -->
+            <circle cx="60" cy="40" r="5" fill="rgba(139,92,246,0.15)" stroke="#8B5CF6" stroke-width="1.5"/>
+            <circle cx="190" cy="40" r="5" fill="rgba(124,58,237,0.15)" stroke="#7C3AED" stroke-width="1.5"/>
+            <circle cx="460" cy="30" r="4" fill="rgba(139,92,246,0.12)" stroke="#8B5CF6" stroke-width="1.2"/>
+            <circle cx="340" cy="30" r="4" fill="rgba(124,58,237,0.12)" stroke="#A855F7" stroke-width="1.2"/>
+            <circle cx="490" cy="260" r="4" fill="rgba(139,92,246,0.12)" stroke="#8B5CF6" stroke-width="1.2"/>
+            <circle cx="490" cy="150" r="3.5" fill="rgba(124,58,237,0.10)" stroke="#7C3AED" stroke-width="1"/>
+            <circle cx="440" cy="410" r="4" fill="rgba(139,92,246,0.12)" stroke="#A855F7" stroke-width="1.2"/>
+            <circle cx="40" cy="390" r="4" fill="rgba(124,58,237,0.12)" stroke="#7C3AED" stroke-width="1.2"/>
+            <circle cx="30" cy="140" r="3.5" fill="rgba(139,92,246,0.10)" stroke="#8B5CF6" stroke-width="1"/>
+            <!-- Pink accent dots -->
+            <circle cx="330" cy="160" r="3" fill="rgba(219,39,119,0.2)" stroke="#DB2777" stroke-width="1"/>
+            <circle cx="180" cy="350" r="3" fill="rgba(219,39,119,0.2)" stroke="#DB2777" stroke-width="1"/>
+            <circle cx="420" cy="100" r="2.5" fill="rgba(219,39,119,0.15)" stroke="#EC4899" stroke-width="0.8"/>
+            <!-- Blue distant nodes -->
+            <circle cx="500" cy="380" r="3" fill="rgba(59,130,246,0.12)" stroke="#3B82F6" stroke-width="1"/>
+            <circle cx="480" cy="50" r="3" fill="rgba(59,130,246,0.12)" stroke="#3B82F6" stroke-width="1"/>
+            <circle cx="20" cy="260" r="2.5" fill="rgba(59,130,246,0.10)" stroke="#3B82F6" stroke-width="0.8"/>
+            <circle cx="250" cy="420" r="2.5" fill="rgba(59,130,246,0.10)" stroke="#3B82F6" stroke-width="0.8"/>
+            <!-- Center node — dominant -->
+            <circle cx="260" cy="220" r="24" fill="#0D1117" stroke="#7C3AED" stroke-width="3"/>
+            <circle cx="260" cy="220" r="10" fill="#7C3AED"/>
+            <circle cx="260" cy="220" r="5" fill="#C4B5FD" opacity="0.7"/>
+            <!-- Pulse rings — staggered -->
+            <circle cx="260" cy="220" r="28" stroke="#7C3AED" stroke-width="1.8" opacity="0.3">
+              <animate attributeName="r" from="26" to="55" dur="2.8s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" from="0.35" to="0" dur="2.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="260" cy="220" r="24" stroke="#A855F7" stroke-width="1.2" opacity="0.2">
+              <animate attributeName="r" from="24" to="48" dur="2.8s" begin="1.4s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" from="0.25" to="0" dur="2.8s" begin="1.4s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cosmic-sep" aria-hidden="true"><span class="cosmic-sep-line"></span><span class="cosmic-sep-dot"></span><span class="cosmic-sep-line"></span></div>
+
+<!-- FEATURES BENTO - denser, more varied -->
+<section id="features" style="padding:60px 0 100px;">
+  <div class="container">
+    <p class="eyebrow gsap-reveal" data-i18n="features.eyebrow">Core Engine</p>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:40px;align-items:end;margin-bottom:48px;" class="gsap-reveal">
+      <h2 class="section-title" style="max-width:560px;" data-i18n="features.title">Every click fires<br>like a synapse</h2>
+      <a href="#features" class="btn btn-secondary" style="flex-shrink:0;" data-i18n="features.link">All Features</a>
+    </div>
+
+    <div class="bento">
+      <!-- Card 1: Main interaction (large, left) -->
+      <div class="bento-card bc-7 br-2 gsap-reveal" style="background:linear-gradient(135deg,var(--bg-secondary) 0%,rgba(124,58,237,0.06) 50%,var(--bg-secondary) 100%);border-color:rgba(124,58,237,0.15);">
+        <div class="bento-dot purple"></div>
+        <div class="icon-box purple" style="width:48px;height:48px;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+	        <h3 style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:10px;" data-i18n="features.card1.title">Five-Direction Spread</h3>
+        <p class="body-text" style="font-size:14px;max-width:440px;margin-bottom:20px;" data-i18n="features.card1.desc">
+          The engine selects five semantically linked words from a curated lexicon, radiating outward simultaneously. Like dendritic spines receiving multiple signals at once.
+        </p>
+        <div style="margin-top:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="background:var(--accent);color:#FFF;padding:8px 18px;border-radius:9999px;font-family:var(--font-display);font-weight:700;font-size:14px;">Mind</span>
+          <span style="color:var(--fg-tertiary);">→</span>
+          <span class="tag purple">Logic</span>
+          <span class="tag pink">Cognition</span>
+          <span class="tag blue">Intuition</span>
+          <span class="tag purple">Analysis</span>
+          <span class="tag pink">Reflection</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Footprint history (right column, top) -->
+      <div class="bento-card bc-5 gsap-reveal" style="border-color:rgba(124,58,237,0.08);">
+        <div class="bento-dot pink"></div>
+        <div class="icon-box pink">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+        </div>
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;" data-i18n="features.card2.title">Trails Are History</h3>
+        <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="features.card2.desc">
+          Every word you touch leaves a faint node on the canvas. Click any trail node to reactivate it and branch somewhere new.
+        </p>
+      </div>
+
+      <!-- Card 3: Bookmarks (right column, middle) -->
+      <div class="bento-card bc-5 gsap-reveal" style="background:linear-gradient(135deg,var(--bg-secondary) 0%,rgba(124,58,237,0.04) 100%);">
+        <div class="bento-dot blue"></div>
+        <div class="icon-box blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+        </div>
+        <h3 style="font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:8px;" data-i18n="features.card3.title">Capture + Note</h3>
+        <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="features.card3.desc">
+          Bookmark the words that resonate. Attach quick notes. Inspiration is fleeting, but your idea bank isn't.
+        </p>
+        <div style="margin-top:auto;display:flex;gap:6px;padding-top:12px;">
+          <span class="tag purple">Design</span><span class="tag pink">Inspiration</span><span class="tag blue">Direction</span>
+        </div>
+      </div>
+
+      <!-- Card 4: Word DB (narrow, bottom row) -->
+      <div class="bento-card bc-3 gsap-reveal">
+        <div class="bento-dot purple"></div>
+        <div class="icon-box purple">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:6px;" data-i18n="features.card4.title">Curated Lexicon</h3>
+        <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="features.card4.desc">2,000+ hand-picked words, each with 5-10 semantic associations built in.</p>
+      </div>
+
+      <!-- Card 5: Zero learning (narrow) -->
+      <div class="bento-card bc-3 gsap-reveal">
+        <div class="bento-dot pink"></div>
+        <div class="icon-box pink">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:6px;" data-i18n="features.card5.title">Zero Learning Curve</h3>
+        <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="features.card5.desc">No toolbars, no menus, no tutorials. Open the page, type a word, start exploring.</p>
+      </div>
+
+      <!-- Card 6: Free + open (narrow) -->
+      <div class="bento-card bc-3 gsap-reveal">
+        <div class="bento-dot blue"></div>
+        <div class="icon-box blue">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:6px;" data-i18n="features.card6.title">Completely Free</h3>
+        <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="features.card6.desc">No sign-up. No subscription. Open a browser tab and go.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cosmic-sep" aria-hidden="true"><span class="cosmic-sep-line"></span><span class="cosmic-sep-dot"></span><span class="cosmic-sep-line"></span></div>
+
+<!-- HOW IT WORKS - dense 2-col grid -->
+<section id="how" style="padding:60px 0 100px;">
+  <div class="container">
+    <p class="eyebrow gsap-reveal" data-i18n="how.eyebrow">How It Works</p>
+    <h2 class="section-title gsap-reveal" style="margin-bottom:48px;max-width:560px;" data-i18n="how.title">Faster than coffee</h2>
+
+    <div class="feature-row gsap-reveal">
+      <div class="feature-cell">
+        <div class="step-num">01</div>
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:8px;" data-i18n="how.step1.title">Type a word</h3>
+          <p style="color:var(--fg-secondary);font-size:14px;line-height:1.7;" data-i18n="how.step1.desc">
+            What's on your mind? What are you stuck on? What made you curious? This is the spark.
+          </p>
+        </div>
+      </div>
+      <div class="feature-cell">
+        <div class="step-num">02</div>
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:8px;" data-i18n="how.step2.title">Follow the pull</h3>
+          <p style="color:var(--fg-secondary);font-size:14px;line-height:1.7;" data-i18n="how.step2.desc">
+            Five words fan out in different directions. Don't overthink. Click the one that grabs you.
+          </p>
+        </div>
+      </div>
+      <div class="feature-cell">
+        <div class="step-num">03</div>
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:8px;" data-i18n="how.step3.title">Catch the spark</h3>
+          <p style="color:var(--fg-secondary);font-size:14px;line-height:1.7;" data-i18n="how.step3.desc">
+            By the fifth layer, the tenth — unexpected connections appear. Bookmark them.
+          </p>
+        </div>
+      </div>
+      <div class="feature-cell">
+        <div class="step-num">04</div>
+        <div>
+          <h3 style="font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:8px;" data-i18n="how.step4.title">Backtrack, branch</h3>
+          <p style="color:var(--fg-secondary);font-size:14px;line-height:1.7;" data-i18n="how.step4.desc">
+            Click any trail node to reactivate it. Start again from that fork. Explore a different branch of thought.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cosmic-sep" aria-hidden="true"><span class="cosmic-sep-line"></span><span class="cosmic-sep-dot"></span><span class="cosmic-sep-line"></span></div>
+
+<!-- CAPABILITIES - horizontal scroll cards -->
+<section id="specs" style="padding:60px 0 100px;">
+  <div class="container">
+    <p class="eyebrow gsap-reveal" data-i18n="specs.eyebrow">Under the Hood</p>
+    <h2 class="section-title gsap-reveal" style="margin-bottom:48px;" data-i18n="specs.title">An engine built<br>for inspiration</h2>
+
+    <div class="h-scroll-wrap gsap-reveal">
+      <div class="h-scroll-track">
+        <div class="h-scroll-card">
+          <div class="icon-box purple" style="width:40px;height:40px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:6px;" data-i18n="specs.card1.title">Instant Engine</h3>
+            <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="specs.card1.desc">Local lexicon with sub-millisecond response. No network lag. Your train of thought stays on track.</p>
+          </div>
+          <div class="stat-value" style="font-size:36px;color:var(--accent);margin-top:auto;">< 50ms</div>
+          <div class="caption" data-i18n="specs.card1.caption">Per-spread response time</div>
+        </div>
+        <div class="h-scroll-card">
+          <div class="icon-box pink" style="width:40px;height:40px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:6px;" data-i18n="specs.card2.title">Infinite Layers</h3>
+            <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="specs.card2.desc">Start from one word, spread without limits. The canvas scales to fit however deep you go.</p>
+          </div>
+          <div class="stat-value" style="font-size:36px;color:var(--accent-2);margin-top:auto;">∞</div>
+          <div class="caption" data-i18n="specs.card2.caption">Theoretical max depth</div>
+        </div>
+        <div class="h-scroll-card">
+          <div class="icon-box blue" style="width:40px;height:40px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          </div>
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:6px;" data-i18n="specs.card3.title">Fully Responsive</h3>
+            <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="specs.card3.desc">Full-screen canvas on desktop, touch-optimized on mobile. Explore anywhere, any device.</p>
+          </div>
+          <div class="stat-value" style="font-size:36px;color:var(--accent-3);margin-top:auto;">375px</div>
+          <div class="caption" data-i18n="specs.card3.caption">Minimum screen width</div>
+        </div>
+        <div class="h-scroll-card">
+          <div class="icon-box purple" style="width:40px;height:40px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>
+          </div>
+          <div>
+            <h3 style="font-family:var(--font-display);font-size:17px;font-weight:700;margin-bottom:6px;" data-i18n="specs.card4.title">Open Source</h3>
+            <p style="color:var(--fg-secondary);font-size:13px;line-height:1.6;" data-i18n="specs.card4.desc">Built on open standards. Developers can self-host and extend the lexicon freely.</p>
+          </div>
+          <div class="stat-value" style="font-size:36px;color:var(--accent);margin-top:auto;">MIT</div>
+          <div class="caption" data-i18n="specs.card4.caption">License</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cosmic-sep" aria-hidden="true"><span class="cosmic-sep-line"></span><span class="cosmic-sep-dot"></span><span class="cosmic-sep-line"></span></div>
+
+<!-- STATS + CTA -->
+<section id="cta" class="cta-dark" style="padding:90px 0;">
+  <div class="container">
+    <!-- Stats row -->
+    <div class="stats-grid gsap-reveal" style="display:grid;grid-template-columns:repeat(4,1fr);gap:48px;margin-bottom:72px;">
+      <div>
+        <div class="stat-value" style="color:var(--accent);">2,000+</div>
+        <div style="color:var(--fg-secondary);font-size:14px;margin-top:6px;" data-i18n="stats.words">Curated words</div>
+      </div>
+      <div>
+        <div class="stat-value" style="color:var(--accent-hover);">5</div>
+        <div style="color:var(--fg-secondary);font-size:14px;margin-top:6px;" data-i18n="stats.branches">Simultaneous branches</div>
+      </div>
+      <div>
+        <div class="stat-value" style="color:#A78BFA;">0</div>
+        <div style="color:var(--fg-secondary);font-size:14px;margin-top:6px;" data-i18n="stats.learn">Seconds to learn</div>
+      </div>
+      <div>
+        <div class="stat-value" style="color:var(--accent);">100%</div>
+        <div style="color:var(--fg-secondary);font-size:14px;margin-top:6px;" data-i18n="stats.free">Free, no sign-up</div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="gsap-reveal" style="text-align:center;">
+      <p class="eyebrow" style="color:var(--fg-secondary);" data-i18n="cta.eyebrow">No Sign-up</p>
+      <h2 class="section-title" style="color:var(--fg);margin-bottom:18px;max-width:600px;margin-left:auto;margin-right:auto;" data-i18n="cta.title">
+        Ready to let inspiration spread?
+      </h2>
+      <p style="color:var(--fg-secondary);font-size:16px;margin-bottom:36px;" data-i18n="cta.body">
+        Open a browser tab, type a word. See where you end up ten minutes later.
+      </p>
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;">
+        <a href="explore.html" class="btn btn-light" style="font-size:16px;padding:16px 44px;" data-i18n="cta.btn1">Start Free</a>
+        <a href="#features" class="btn btn-ghost-dark" style="font-size:16px;padding:16px 44px;" data-i18n="cta.btn2">Learn More</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="padding:40px 32px;text-align:center;border-top:1px solid rgba(255,255,255,0.04);">
+  <div style="display:flex;align-items:center;justify-content:center;gap:9px;font-family:var(--font-decorative);font-size:17px;color:rgba(251,251,253,0.4);letter-spacing:0.02em;margin-bottom:8px;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;opacity:0.4;"><path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8Z" fill="#7C3AED"/><circle cx="12" cy="12" r="2.5" fill="#A78BFA"/></svg>
+    SynapseSpark
+  </div>
+  <p style="color:rgba(251,251,253,0.2);font-size:12px;" data-i18n="footer.tagline">Ideas spread like signal</p>
+</footer>
+
+<!-- SCRIPTS -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+if (typeof gsap !== 'undefined') { gsap.registerPlugin(ScrollTrigger); }
+
+// Ripple click effect on all buttons (animate.md: press confirmation feedback)
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const rect = this.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+    ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+    this.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
+  });
+});
+
+// ── OVERDRIVE: Magnetic Typography (cursor-responsive character repulsion) ──
+(function() {
+  const title = document.querySelector('.mag-title');
+  if (!title) return;
+  if (window.matchMedia('(pointer: coarse)').matches) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  // 1. Split every text node into <span class="mag-char"> per character
+  function splitChars(node) {
+    const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach(tn => {
+      if (tn.textContent.trim() === '' && tn.textContent !== ' ') return;
+      const frag = document.createDocumentFragment();
+      [...tn.textContent].forEach(ch => {
+        const span = document.createElement('span');
+        span.className = 'mag-char';
+        span.textContent = ch;
+        span.setAttribute('aria-hidden', 'true');
+        frag.appendChild(span);
+      });
+      tn.replaceWith(frag);
+    });
+  }
+  splitChars(title);
+
+  // 2. Inject glow orb
+  const glow = document.createElement('div');
+  glow.className = 'mag-glow';
+  title.style.position = 'relative';
+  title.appendChild(glow);
+
+  // 3. Cursor tracking + repulsion
+  const chars = title.querySelectorAll('.mag-char');
+  const titleRect = () => title.getBoundingClientRect();
+  let rafId = null;
+  let mouseX = -999, mouseY = -999;
+
+  title.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    // Glow follows cursor instantly
+    const r = titleRect();
+    glow.style.left = (e.clientX - r.left) + 'px';
+    glow.style.top = (e.clientY - r.top) + 'px';
+    if (!rafId) {
+      rafId = requestAnimationFrame(updateChars);
+    }
+  });
+
+  title.addEventListener('mouseleave', () => {
+    mouseX = -999; mouseY = -999;
+    // Reset all chars to origin
+    chars.forEach(c => { c.style.transform = 'translate(0,0)'; });
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+  });
+
+  function updateChars() {
+    rafId = null;
+    let anyActive = false;
+    const r = titleRect();
+    const cx = mouseX - r.left;
+    const cy = mouseY - r.top;
+
+    chars.forEach(c => {
+      const cr = c.getBoundingClientRect();
+      const charCX = cr.left + cr.width / 2 - r.left;
+      const charCY = cr.top + cr.height / 2 - r.top;
+      const dx = charCX - cx;
+      const dy = charCY - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      const radius = 120;
+
+      if (dist < radius && mouseX > 0) {
+        anyActive = true;
+        const force = (1 - dist / radius) * 1.8; // max 1.8× strength
+        const angle = Math.atan2(dy, dx);
+        const tx = Math.cos(angle) * force * 6; // max ~10px push
+        const ty = Math.sin(angle) * force * 6;
+        c.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px)`;
+      } else {
+        c.style.transform = 'translate(0,0)';
+      }
+    });
+
+    // Schedule next frame if still active
+    if (anyActive && mouseX > 0) {
+      rafId = requestAnimationFrame(updateChars);
+    }
+  }
+})();
+
+// ── OVERDRIVE: Spring Entrance for bottom CTA ──
+(function() {
+  const ctaHeading = document.querySelector('.cta-dark .section-title');
+  if (!ctaHeading) return;
+
+  // Split into spring-char spans
+  const text = ctaHeading.textContent;
+  ctaHeading.textContent = '';
+  [...text].forEach((ch, i) => {
+    const span = document.createElement('span');
+    span.className = 'spring-char';
+    span.textContent = ch;
+    span.style.transitionDelay = (i * 60) + 'ms';
+    span.setAttribute('aria-hidden', 'true');
+    ctaHeading.appendChild(span);
+  });
+
+  // Intersection observer: trigger stagger entrance
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion) {
+    ctaHeading.querySelectorAll('.spring-char').forEach(c => c.classList.add('in-view'));
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        ctaHeading.querySelectorAll('.spring-char').forEach(c => {
+          c.classList.add('in-view');
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  observer.observe(ctaHeading);
+})();
+
+// ============================================================================
+// SETTINGS — language, login, theme
+// ============================================================================
+(function() {
+  // ── i18n translations ──
+  const i18n = {
+    'zh-Hant': {
+      'nav.cta': '開始探索',
+        'nav.pricing': '充值積分',
+      'hero.eyebrow': '靈感探索工具',
+      'hero.title': '讓每一個點子<br>找到屬於它的<span class="mag-accent">方向</span>',
+      'hero.body': '從一個詞開始，向五個方向同步擴散。在關聯的跳躍中撞見不曾預期的靈感。',
+      'hero.cta1': '立即嘗試',
+      'hero.cta2': '了解更多',
+      'features.eyebrow': '核心能力',
+      'features.title': '每次點擊都像<br>神經元的一次放電',
+      'features.link': '查看全部功能',
+      'features.card1.title': '五向擴散',
+      'features.card1.desc': '引擎從精選詞庫中選出五個語義相關詞，同時向外輻射。就像樹突棘同時接收多個訊號。',
+      'features.card2.title': '足跡即歷史',
+      'features.card2.desc': '你觸碰過的每個詞都在畫布上留下淡色節點。點擊任意足跡節點即可重新啟動它，從那裡分叉到新的方向。',
+      'features.card3.title': '捕捉＋筆記',
+      'features.card3.desc': '收藏那些引起共鳴的詞。附上簡短筆記。靈感稍縱即逝，但你的點子庫不會。',
+      'features.card4.title': '精選詞庫',
+      'features.card4.desc': '2000+ 個手工挑選的詞彙，每個詞都內建 5-10 個語義關聯。',
+      'features.card5.title': '零學習門檻',
+      'features.card5.desc': '沒有工具欄、沒有選單、沒有教學。打開頁面，輸入一個詞，開始探索。',
+      'features.card6.title': '完全免費',
+      'features.card6.desc': '無需註冊。無需訂閱。打開瀏覽器分頁即可開始。',
+      'how.eyebrow': '使用方式',
+      'how.title': '比泡一杯咖啡更快進入狀態',
+      'how.step1.title': '輸入一個詞',
+      'how.step1.desc': '你在想什麼？你卡在哪裡？什麼讓你好奇？這就是火花。',
+      'how.step2.title': '跟隨吸引力',
+      'how.step2.desc': '五個詞向不同方向展開。不要過度思考。點擊那個抓住你注意力的詞。',
+      'how.step3.title': '抓住火花',
+      'how.step3.desc': '到第五層、第十層——意想不到的連結就會出現。收藏它們。',
+      'how.step4.title': '回溯、分叉',
+      'how.step4.desc': '點擊任意足跡節點重新啟動它。從這個分叉重新開始。探索不同的思考分支。',
+      'specs.eyebrow': '產品規格',
+      'specs.title': '為靈感而生<br>的引擎',
+      'specs.card1.title': '即時引擎',
+      'specs.card1.desc': '本地詞庫，亞毫秒級回應。無網路延遲。你的思緒不會被打斷。',
+      'specs.card1.caption': '每次擴散回應時間',
+      'specs.card2.title': '無限層級',
+      'specs.card2.desc': '從一個詞開始，無限擴散。畫布會隨著你的深入自動縮放。',
+      'specs.card2.caption': '理論最大深度',
+      'specs.card3.title': '全響應式',
+      'specs.card3.desc': '桌上型電腦全螢幕畫布，手機觸控優化。隨時隨地，任何裝置都能探索。',
+      'specs.card3.caption': '最小螢幕寬度',
+      'specs.card4.title': '開放原始碼',
+      'specs.card4.desc': '基於開放標準構建。開發者可以自由自託管並擴展詞庫。',
+      'specs.card4.caption': '授權條款',
+      'stats.words': '精選詞彙',
+      'stats.branches': '同步分支數',
+      'stats.learn': '秒即可上手',
+      'stats.free': '完全免費，無需註冊',
+      'cta.eyebrow': '無需註冊',
+      'cta.title': '準備好讓靈感開始擴散了嗎？',
+      'cta.body': '打開瀏覽器，輸入一個詞。看看十分鐘後你會站在哪裡。',
+      'cta.btn1': '開始免費使用',
+      'cta.btn2': '了解更多',
+      'footer.tagline': '靈感如光，自由擴散'
+    },
+    'zh-Hans': {
+      'nav.cta': '开始探索',
+        'nav.pricing': '充值积分',
+      'hero.eyebrow': '灵感探索工具',
+      'hero.title': '让每一个点子<br>找到属于它的<span class="mag-accent">方向</span>',
+      'hero.body': '从一个词开始，向五个方向同步扩散。在关联的跳跃中撞见不曾预期的灵感。',
+      'hero.cta1': '立即尝试',
+      'hero.cta2': '了解更多',
+      'features.eyebrow': '核心能力',
+      'features.title': '每次点击都像<br>神经元的一次放电',
+      'features.link': '查看全部功能',
+      'features.card1.title': '五向扩散',
+      'features.card1.desc': '引擎从精选词库中选出五个语义相关词，同时向外辐射。就像树突棘同时接收多个信号。',
+      'features.card2.title': '足迹即历史',
+      'features.card2.desc': '你触碰过的每个词都在画布上留下淡色节点。点击任意足迹节点即可重新激活它，从那里分叉到新的方向。',
+      'features.card3.title': '捕捉＋笔记',
+      'features.card3.desc': '收藏那些引起共鸣的词。附上简短笔记。灵感稍纵即逝，但你的点子库不会。',
+      'features.card4.title': '精选词库',
+      'features.card4.desc': '2000+ 个手工挑选的词汇，每个词都内置 5-10 个语义关联。',
+      'features.card5.title': '零学习门槛',
+      'features.card5.desc': '没有工具栏、没有菜单、没有教程。打开页面，输入一个词，开始探索。',
+      'features.card6.title': '完全免费',
+      'features.card6.desc': '无需注册。无需订阅。打开浏览器分页即可开始。',
+      'how.eyebrow': '使用方式',
+      'how.title': '比泡一杯咖啡更快进入状态',
+      'how.step1.title': '输入一个词',
+      'how.step1.desc': '你在想什么？你卡在哪里？什么让你好奇？这就是火花。',
+      'how.step2.title': '跟随吸引力',
+      'how.step2.desc': '五个词向不同方向展开。不要过度思考。点击那个抓住你注意力的词。',
+      'how.step3.title': '抓住火花',
+      'how.step3.desc': '到第五层、第十层——意想不到的连接就会出现。收藏它们。',
+      'how.step4.title': '回溯、分叉',
+      'how.step4.desc': '点击任意足迹节点重新激活它。从这个分叉重新开始。探索不同的思考分支。',
+      'specs.eyebrow': '产品规格',
+      'specs.title': '为灵感而生<br>的引擎',
+      'specs.card1.title': '即时引擎',
+      'specs.card1.desc': '本地词库，亚毫秒级响应。无网络延迟。你的思绪不会被打断。',
+      'specs.card1.caption': '每次扩散响应时间',
+      'specs.card2.title': '无限层级',
+      'specs.card2.desc': '从一个词开始，无限扩散。画布会随着你的深入自动缩放。',
+      'specs.card2.caption': '理论最大深度',
+      'specs.card3.title': '全响应式',
+      'specs.card3.desc': '桌面端全屏画布，手机触控优化。随时随地，任何设备都能探索。',
+      'specs.card3.caption': '最小屏幕宽度',
+      'specs.card4.title': '开放源代码',
+      'specs.card4.desc': '基于开放标准构建。开发者可以自由自托管并扩展词库。',
+      'specs.card4.caption': '授权条款',
+      'stats.words': '精选词汇',
+      'stats.branches': '同步分支数',
+      'stats.learn': '秒即可上手',
+      'stats.free': '完全免费，无需注册',
+      'cta.eyebrow': '无需注册',
+      'cta.title': '准备好让灵感开始扩散了吗？',
+      'cta.body': '打开浏览器，输入一个词。看看十分钟后你会站在哪里。',
+      'cta.btn1': '开始免费使用',
+      'cta.btn2': '了解更多',
+      'footer.tagline': '灵感如光，自由扩散'
+    },
+    'en': {
+      'nav.cta': 'Try Now',
+        'nav.pricing': 'Recharge',
+      'hero.eyebrow': 'SYNAPTIC THINKING TOOL',
+      'hero.title': 'One word sparks<br>a thousand <span class="mag-accent">directions</span>',
+      'hero.body': 'Start with a single word. Watch it branch into five. Follow the connections you never saw coming.',
+      'hero.cta1': 'Try Now',
+      'hero.cta2': 'See How It Works',
+      'features.eyebrow': 'Core Engine',
+      'features.title': 'Every click fires<br>like a synapse',
+      'features.link': 'All Features',
+      'features.card1.title': 'Five-Direction Spread',
+      'features.card1.desc': 'The engine selects five semantically linked words from a curated lexicon, radiating outward simultaneously. Like dendritic spines receiving multiple signals at once.',
+      'features.card2.title': 'Trails Are History',
+      'features.card2.desc': 'Every word you touch leaves a faint node on the canvas. Click any trail node to reactivate it and branch somewhere new.',
+      'features.card3.title': 'Capture + Note',
+      'features.card3.desc': 'Bookmark the words that resonate. Attach quick notes. Inspiration is fleeting, but your idea bank isn\'t.',
+      'features.card4.title': 'Curated Lexicon',
+      'features.card4.desc': '2,000+ hand-picked words, each with 5-10 semantic associations built in.',
+      'features.card5.title': 'Zero Learning Curve',
+      'features.card5.desc': 'No toolbars, no menus, no tutorials. Open the page, type a word, start exploring.',
+      'features.card6.title': 'Completely Free',
+      'features.card6.desc': 'No sign-up. No subscription. Open a browser tab and go.',
+      'how.eyebrow': 'How It Works',
+      'how.title': 'Faster than coffee',
+      'how.step1.title': 'Type a word',
+      'how.step1.desc': 'What\'s on your mind? What are you stuck on? What made you curious? This is the spark.',
+      'how.step2.title': 'Follow the pull',
+      'how.step2.desc': 'Five words fan out in different directions. Don\'t overthink. Click the one that grabs you.',
+      'how.step3.title': 'Catch the spark',
+      'how.step3.desc': 'By the fifth layer, the tenth — unexpected connections appear. Bookmark them.',
+      'how.step4.title': 'Backtrack, branch',
+      'how.step4.desc': 'Click any trail node to reactivate it. Start again from that fork. Explore a different branch of thought.',
+      'specs.eyebrow': 'Under the Hood',
+      'specs.title': 'An engine built<br>for inspiration',
+      'specs.card1.title': 'Instant Engine',
+      'specs.card1.desc': 'Local lexicon with sub-millisecond response. No network lag. Your train of thought stays on track.',
+      'specs.card1.caption': 'Per-spread response time',
+      'specs.card2.title': 'Infinite Layers',
+      'specs.card2.desc': 'Start from one word, spread without limits. The canvas scales to fit however deep you go.',
+      'specs.card2.caption': 'Theoretical max depth',
+      'specs.card3.title': 'Fully Responsive',
+      'specs.card3.desc': 'Full-screen canvas on desktop, touch-optimized on mobile. Explore anywhere, any device.',
+      'specs.card3.caption': 'Minimum screen width',
+      'specs.card4.title': 'Open Source',
+      'specs.card4.desc': 'Built on open standards. Developers can self-host and extend the lexicon freely.',
+      'specs.card4.caption': 'License',
+      'stats.words': 'Curated words',
+      'stats.branches': 'Simultaneous branches',
+      'stats.learn': 'Seconds to learn',
+      'stats.free': 'Free, no sign-up',
+      'cta.eyebrow': 'No Sign-up',
+      'cta.title': 'Ready to let inspiration spread?',
+      'cta.body': 'Open a browser tab, type a word. See where you end up ten minutes later.',
+      'cta.btn1': 'Start Free',
+      'cta.btn2': 'Learn More',
+      'footer.tagline': 'Ideas spread like signal'
+    }
+  };
+
+  const pageTitles = {
+    'zh-Hant': 'SynapseSpark — 靈感如光，自由擴散',
+    'zh-Hans': 'SynapseSpark — 灵感如光，自由扩散',
+    'en': 'SynapseSpark — Ideas spread like signal'
+  };
+
+  let currentLang = 'en';
+
+  function applyI18n(lang) {
+    currentLang = lang;
+    const dict = i18n[lang] || i18n['en'];
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const html = dict[key];
+      if (html) { el.innerHTML = html; }
+    });
+    document.title = pageTitles[lang] || pageTitles['en'];
+    localStorage.setItem('synapse-lang', lang);
+  }
+
+  // Restore saved language
+  const savedLang = localStorage.getItem('synapse-lang');
+  if (savedLang && i18n[savedLang]) {
+    applyI18n(savedLang);
+    // Sync chips
+    document.querySelectorAll('.settings-lang-chip').forEach(c => {
+      c.classList.toggle('active', c.getAttribute('data-nav-lang') === savedLang);
+    });
+  }
+
+  // ── Settings dropdown ──
+  const wrap = document.getElementById('settingsWrap');
+  const btn = document.getElementById('settingsBtn');
+  const dropdown = document.getElementById('settingsDropdown');
+  let open = false;
+
+  function openMenu() {
+    open = true;
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    dropdown.classList.add('open');
+  }
+  function closeMenu() {
+    open = false;
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    dropdown.classList.remove('open');
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    open ? closeMenu() : openMenu();
+  });
+  document.addEventListener('click', (e) => {
+    if (open && !wrap.contains(e.target)) closeMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && open) closeMenu();
+  });
+
+  // ── Language chips ──
+  dropdown.querySelectorAll('.settings-lang-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      dropdown.querySelectorAll('.settings-lang-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      applyI18n(chip.getAttribute('data-nav-lang'));
+      closeMenu();
+    });
+  });
+
+  // ── Login modal (deferred: modal HTML is after script) ──
+  document.addEventListener('DOMContentLoaded', () => {
+    const loginOverlay = document.getElementById('loginOverlay');
+    document.getElementById('navLoginBtn').addEventListener('click', () => {
+      closeMenu();
+      loginOverlay.classList.add('open');
+    });
+    document.getElementById('loginClose').addEventListener('click', () => {
+      loginOverlay.classList.remove('open');
+    });
+    loginOverlay.addEventListener('click', (e) => {
+      if (e.target === loginOverlay) loginOverlay.classList.remove('open');
+    });
+    document.getElementById('loginSubmit').addEventListener('click', () => {
+      const email = document.getElementById('loginEmail').value.trim();
+      if (!email) {
+        showToast('Please enter your email');
+        return;
+      }
+      showToast('Signed in as ' + email);
+      loginOverlay.classList.remove('open');
+      document.getElementById('loginEmail').value = '';
+      document.getElementById('loginPass').value = '';
+    });
+  });
+
+  // ── Theme toggle ──
+  const savedTheme = localStorage.getItem('synapse-theme');
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+
+  document.getElementById('navPricingBtn').addEventListener('click', () => {
+    closeMenu();
+    window.location.href = '/pricing';
+  });
+
+  document.getElementById('navThemeBtn').addEventListener('click', () => {
+    closeMenu();
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const next = isLight ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('synapse-theme', next);
+    showToast(isLight ? 'Switched to dark mode' : 'Switched to light mode');
+  });
+
+  // ── Toast helper ──
+  let toastTimer = null;
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    if (!el) return;
+    if (toastTimer) clearTimeout(toastTimer);
+    el.textContent = msg;
+    el.classList.add('show');
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+  }
+})();
+
+// Nav scroll state
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+}, { passive: true });
+
+// Hero entry animation — only when GSAP CDN is available
+if (typeof gsap !== 'undefined') {
+const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+heroTl
+  .to('.gsap-hero-text', { opacity: 1, y: 0, duration: 0.8 }, 0)
+  .to('.gsap-hero-demo', { opacity: 1, y: 0, duration: 0.8 }, 0.2);
+
+// Scroll reveal - staggered
+const revealEls = document.querySelectorAll('.gsap-reveal');
+revealEls.forEach((el, i) => {
+  const delay = (i % 3) * 0.08;
+  gsap.fromTo(el,
+    { opacity: 0, y: 32 },
+    {
+      opacity: 1, y: 0, duration: 0.7, delay,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: el,
+        start: 'top 88%',
+        toggleActions: 'play none none none',
+      }
+    }
+  );
+});
+
+// Stats counter animation — animate numbers from 0 to target
+(function() {
+  var statValues = document.querySelectorAll('.stat-value');
+  statValues.forEach(function(el) {
+    var text = el.textContent.trim();
+    var suffix = '';
+    var prefix = '';
+    var targetNum = 0;
+
+    if (text === '∞') return;
+    if (text.endsWith('+')) { suffix = '+'; text = text.slice(0, -1); }
+    if (text.endsWith('%')) { suffix = '%'; text = text.slice(0, -1); }
+    targetNum = parseFloat(text.replace(/,/g, '')) || 0;
+
+    el._countTarget = targetNum;
+    el._countSuffix = suffix;
+    el._countPrefix = prefix;
+    el._countFormat = text.includes(',') || targetNum >= 1000;
+
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 92%',
+      onEnter: function() {
+        var obj = { val: 0 };
+        var target = el._countTarget;
+        var suffix = el._countSuffix;
+        var format = el._countFormat;
+        gsap.to(obj, {
+          val: target,
+          duration: 1.2,
+          ease: 'power3.out',
+          onUpdate: function() {
+            var v = Math.round(obj.val);
+            el.textContent = format ? v.toLocaleString() : v;
+            el.textContent += suffix;
+          }
+        });
+      },
+      onLeaveBack: function() { el.style.opacity = '0.35'; },
+      onEnterBack: function() {
+        el.style.opacity = '1';
+      }
+    });
+
+    el.style.opacity = '0.35';
+  });
+})();
+} // end GSAP guard
+
+// Horizontal scroll affordance — fade edges when at limits
+(function() {
+  var wrap = document.querySelector('.h-scroll-wrap');
+  if (!wrap) return;
+  function updateScrollEdges() {
+    var atStart = wrap.scrollLeft <= 2;
+    var atEnd = wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 2;
+    wrap.classList.toggle('at-start', atStart);
+    wrap.classList.toggle('at-end', atEnd);
+  }
+  wrap.addEventListener('scroll', updateScrollEdges, { passive: true });
+  window.addEventListener('resize', updateScrollEdges, { passive: true });
+  updateScrollEdges();
+})();
+
+// Reduced motion — skip animations but preserve menu functionality
+if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  document.querySelectorAll('.gsap-reveal, .gsap-hero-text, .gsap-hero-demo').forEach(el => {
+    el.style.opacity = '1';
+    el.style.transform = 'none';
+  });
+  if (typeof ScrollTrigger !== 'undefined') {
+    ScrollTrigger.getAll().forEach(st => st.kill());
+  }
+}
+</script>
+
+<!-- LOGIN MODAL -->
+<div class="modal-overlay" id="loginOverlay">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 class="modal-title">Login</h2>
+      <button class="modal-close" id="loginClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label" for="loginEmail">Email</label>
+      <input class="modal-input" id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label" for="loginPass">Password</label>
+      <input class="modal-input" id="loginPass" type="password" placeholder="········" autocomplete="current-password">
+    </div>
+    <button class="modal-submit" id="loginSubmit">Sign In</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" aria-live="polite"></div>
+</body>
+</html>

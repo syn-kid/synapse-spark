@@ -1,0 +1,3401 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-i18n="page.title">SynapseSpark — Explore</title>
+<meta name="description" content="Start with one word. Watch it branch. Follow the sparks.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8Z' fill='%237C3AED'/><circle cx='12' cy='12' r='2.5' fill='%23A78BFA'/></svg>">
+<style>
+/* ============================================================
+   DESIGN SYSTEM — SynapseSpark Dark-Room Star-Chart
+   ============================================================ */
+:root {
+  --bg-void: #0D1117;
+  --bg-deep: #161B22;
+  --bg-slate: #1C2333;
+  --bg-elevated: #1A1E2E;
+  --fg: #E6EDF3;
+  --fg-secondary: #8B949E;
+  --fg-tertiary: #484F58;
+
+  /* Three-color node system */
+  --synaptic-purple: #7C3AED;
+  --synaptic-purple-fill: rgba(124,58,237,0.15);
+  --synaptic-purple-border: #7C3AED;
+  --dendritic-blue: #3B82F6;
+  --dendritic-blue-fill: rgba(59,130,246,0.10);
+  --dark-nebula: #484F58;
+  --axonal-pink: #DB2777;
+  --axonal-pink-soft: rgba(219,39,119,0.12);
+
+  --border: #30363D;
+  --border-strong: #484F58;
+  --glass-bg: rgba(13,17,23,0.88);
+  --glass-border: rgba(255,255,255,0.06);
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+
+  --font-ui: 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  --font-decorative: 'Georgia', 'Times New Roman', 'STSong', serif;
+
+  --nav-h: 56px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --z-canvas: 10;
+  --z-dock: 70;
+  --z-dialog: 60;
+  --z-nav: 100;
+  --z-panel: 50;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { overflow: hidden; height: 100%; }
+::selection { background: rgba(59,130,246,0.25); color: var(--fg); }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-void);
+  color: var(--fg);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  height: 100vh; height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Nav (dark frosted, unchanged) ── */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-nav);
+  height: var(--nav-h);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 24px;
+  background: var(--glass-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--glass-border);
+  font-family: var(--font-ui); font-size: 14px;
+}
+.nav-back {
+  font-size: 13px; font-weight: 400; color: var(--fg-secondary);
+  padding: 6px 12px; border-radius: var(--radius-pill);
+  transition: background 200ms ease, color 200ms ease;
+  cursor: pointer; text-decoration: none;
+  display: flex; align-items: center; gap: 4px;
+}
+.nav-back:hover { background: var(--bg-slate); color: var(--fg); }
+.nav-brand {
+  font-family: var(--font-decorative); font-size: 17px;
+  letter-spacing: 0.02em; color: var(--fg);
+}
+
+/* Settings dropdown */
+.settings-wrap { position: relative; display: inline-flex; }
+.settings-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%; border: none;
+  background: var(--bg-slate); color: var(--fg-secondary);
+  cursor: pointer;
+  transition: background 220ms var(--ease-out), color 220ms var(--ease-out), transform 250ms var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+.settings-btn:hover { background: var(--border-strong); color: var(--fg); }
+.settings-btn:active { transform: scale(0.92); }
+.settings-btn.open { background: var(--synaptic-purple); color: #FFF; }
+.settings-btn .gear-icon { transition: transform 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
+.settings-btn.open .gear-icon { transform: rotate(90deg); }
+
+.settings-dropdown {
+  position: absolute; top: calc(100% + 10px); right: 0;
+  min-width: 200px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  opacity: 0; transform: translateY(-8px) scale(0.95);
+  pointer-events: none;
+  transition: opacity 250ms var(--ease-out), transform 350ms var(--ease-spring);
+  z-index: 300;
+}
+.settings-dropdown.open {
+  opacity: 1; transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+.settings-section { padding: 6px 0; }
+.settings-section + .settings-section { border-top: 1px solid var(--border); }
+.settings-section-label {
+  font-family: var(--font-ui); font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--fg-tertiary);
+  padding: 6px 12px 4px;
+}
+.settings-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 10px 12px; border-radius: var(--radius-sm);
+  border: none; background: transparent;
+  font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+  color: var(--fg-secondary); cursor: pointer;
+  transition: background 180ms ease, color 180ms ease;
+  text-align: left; letter-spacing: -0.01em;
+}
+.settings-item:hover { background: var(--bg-slate); color: var(--fg); }
+.settings-item .s-icon {
+  width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; opacity: 0.7;
+}
+.settings-item:hover .s-icon { opacity: 1; }
+.settings-lang-row { display: flex; gap: 3px; padding: 4px 8px; }
+.settings-lang-chip {
+  flex: 1; padding: 7px 0; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: transparent;
+  font-family: var(--font-ui); font-size: 12px; font-weight: 600;
+  color: var(--fg-secondary); cursor: pointer;
+  transition: all 180ms ease;
+  text-align: center;
+}
+.settings-lang-chip:hover { border-color: var(--border-strong); color: var(--fg); }
+.settings-lang-chip.active {
+  border-color: var(--synaptic-purple); color: var(--synaptic-purple);
+  background: var(--synaptic-purple-fill);
+}
+
+/* ── Canvas ── */
+.canvas-stage {
+  position: absolute;
+  top: var(--nav-h); left: 0; right: 0; bottom: 0;
+  z-index: var(--z-canvas);
+  overflow: hidden;
+  cursor: grab;
+}
+.canvas-stage:active { cursor: grabbing; }
+.canvas-stage.dragging-node { cursor: default; }
+.canvas-stage.dragging-canvas { cursor: grabbing; }
+
+.canvas-world {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  transform-origin: 0 0;
+}
+
+/* SVG connection layer */
+.connections-layer {
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+
+/* ── Nodes (three-color system) ── */
+.node {
+  position: absolute;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  border-radius: 12px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: -0.01em;
+  transition:
+    transform 150ms var(--ease-out),
+    background-color 150ms var(--ease-out),
+    border-color 150ms var(--ease-out),
+    color 150ms var(--ease-out),
+    opacity 150ms var(--ease-out),
+    font-weight 150ms var(--ease-out);
+  will-change: transform;
+}
+
+/* Selected */
+.node.selected {
+  color: var(--fg);
+  font-weight: 700;
+  transform: translate(-50%, -50%) scale(1.15);
+  z-index: 10;
+  font-size: 18px;
+  padding: 14px 28px;
+}
+
+/* Visited */
+.node.visited {
+  border: none;
+  color: var(--fg);
+  font-weight: 500;
+  transform: translate(-50%, -50%) scale(1);
+  z-index: 5;
+  font-size: 16px;
+  padding: 12px 24px;
+}
+
+/* Unvisited — dark nebula outline */
+.node.unvisited {
+  background: transparent;
+  border: 1.5px solid var(--dark-nebula);
+  color: var(--fg-secondary);
+  font-weight: 400;
+  transform: translate(-50%, -50%) scale(0.85);
+  z-index: 5;
+  font-size: 15px;
+  padding: 12px 24px;
+}
+
+/* Side-branch (dimmed after axis switch) */
+.node.side-branch {
+  transform: translate(-50%, -50%) scale(0.75);
+  opacity: 0.5;
+  transition:
+    transform 280ms var(--ease-out),
+    opacity 280ms var(--ease-out);
+}
+
+/* Bookmark pink dot */
+.node.bookmarked::after {
+  content: '';
+  position: absolute;
+  top: -3px; right: -3px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--axonal-pink);
+}
+
+/* Model icon (tiny, top-left) */
+.node .model-badge {
+  position: absolute;
+  top: -4px; left: -4px;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+/* Bookmark button on hover */
+.node .bm-btn {
+  display: none;
+  width: 18px; height: 18px;
+  border-radius: 50%; border: none;
+  background: transparent; color: var(--fg-tertiary);
+  cursor: pointer; flex-shrink: 0;
+  font-size: 12px; line-height: 1;
+  align-items: center; justify-content: center;
+  transition: color 150ms ease, transform 150ms var(--ease-out);
+}
+.node:hover .bm-btn,
+.node:focus-visible .bm-btn { display: flex; }
+.node.bookmarked .bm-btn { display: flex; color: var(--axonal-pink); }
+.node .bm-btn:hover { color: var(--axonal-pink); transform: scale(1.15); }
+
+/* Hover states */
+.node.unvisited:hover {
+  border-color: var(--synaptic-purple);
+  color: var(--fg);
+}
+
+/* Focus indicator */
+.node:focus-visible {
+  outline: 2px solid var(--synaptic-purple);
+  outline-offset: 3px;
+}
+
+/* ── Connection lines ── */
+.conn-path {
+  fill: none;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+/* Visited path */
+.conn-visited {
+  stroke: var(--dendritic-blue);
+  stroke-width: 2.5;
+  opacity: 0.45;
+}
+/* Unvisited path */
+.conn-unvisited {
+  stroke: var(--dark-nebula);
+  stroke-width: 2;
+  stroke-dasharray: 4 8;
+}
+/* Resonance (cross-tree manual connection) */
+.conn-resonance {
+  stroke: var(--axonal-pink);
+  stroke-width: 2;
+  stroke-dasharray: 5 8;
+  filter: drop-shadow(0 0 3px rgba(219,39,119,0.25));
+}
+
+/* ── Dialog (kept as-is) ── */
+.dialog-overlay {
+  position: fixed; inset: 0; z-index: var(--z-dialog);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; pointer-events: all;
+  transition: opacity 400ms var(--ease-out);
+}
+.dialog-overlay.docked { pointer-events: none; }
+.dialog-card {
+  width: 100%; max-width: 520px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.24);
+  display: flex; flex-direction: column;
+  position: relative;
+  transition: transform 400ms var(--ease-spring), opacity 350ms var(--ease-out);
+}
+.dialog-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--fg-secondary);
+  padding: 4px 8px 8px;
+}
+.seed-textarea-wrap {
+  position: relative;
+  background: transparent; border: none;
+  border-radius: 0;
+}
+.seed-textarea-wrap::before {
+  content: '>';
+  position: absolute; left: 10px; top: 10px;
+  font-family: var(--font-mono);
+  font-size: 16px; font-weight: 500;
+  color: #6A9955;
+  pointer-events: none; z-index: 1;
+}
+.seed-textarea {
+  width: 100%;
+  background-color: transparent; border: none;
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 16px; font-weight: 500;
+  padding: 4px 8px 8px 26px;
+  resize: none; outline: none;
+  line-height: 1.5;
+  min-height: 48px; max-height: 180px;
+  -webkit-appearance: none; appearance: none;
+  caret-color: var(--synaptic-purple);
+}
+.seed-textarea::placeholder { color: var(--fg-tertiary); font-weight: 400; }
+.seed-textarea::-webkit-scrollbar { width: 6px; }
+.seed-textarea::-webkit-scrollbar-track { background: transparent; }
+.seed-textarea::-webkit-scrollbar-thumb { background-color: var(--border-strong); border-radius: 3px; }
+
+.dialog-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; padding: 8px 8px 4px;
+  border-top: 1px solid var(--border);
+}
+.dialog-bar-left { display: flex; align-items: center; gap: 4px; }
+
+/* Model dropdown */
+.model-dropdown { position: relative; }
+.model-trigger {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--bg-slate);
+  font-family: var(--font-ui); font-size: 12px; font-weight: 600;
+  color: var(--fg-secondary); cursor: pointer;
+  transition: border-color 200ms ease, background 200ms ease, color 200ms ease;
+  user-select: none; min-height: 36px;
+}
+.model-trigger:hover { border-color: var(--border-strong); color: var(--fg); }
+.model-trigger:active { transform: scale(0.95); transition: transform 100ms ease; }
+.model-trigger .chevron {
+  width: 10px; height: 10px; opacity: 0.5;
+  transition: transform 250ms ease;
+}
+.model-dropdown.open .model-trigger .chevron { transform: rotate(180deg); }
+.model-menu {
+  position: absolute; bottom: calc(100% + 6px); left: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.4);
+  padding: 6px; min-width: 160px; z-index: 100;
+  opacity: 0; visibility: hidden; transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms var(--ease-spring), visibility 0s 180ms;
+}
+.model-dropdown.open .model-menu { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: all; transition: opacity 180ms ease, transform 180ms var(--ease-spring), visibility 0s 0s; }
+.model-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+  color: var(--fg); cursor: pointer;
+  transition: background 150ms ease;
+}
+.model-item:hover { background: var(--bg-slate); }
+.model-item.selected { color: #A78BFA; background: rgba(139,92,246,0.12); }
+.model-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.model-dot.ds { background: #3B82F6; }
+.model-dot.qwen { background: #10B981; }
+.model-dot.glm { background: #8B5CF6; }
+.model-dot.kimi { background: #F59E0B; }
+.model-dot.doubao { background: #06B6D4; }
+
+/* Identity avatars */
+.identity-row {
+  display: flex; align-items: center; gap: 1px;
+}
+.identity-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px;
+  border: 2px solid transparent;
+  user-select: none; position: relative;
+  -webkit-tap-highlight-color: transparent;
+  background: var(--bg-slate);
+  transition: transform 250ms var(--ease-spring),
+              border-color 220ms ease,
+              box-shadow 220ms ease,
+              background 220ms ease;
+}
+.identity-avatar:hover { transform: translateY(-1px) scale(1.08); background: var(--border-strong); }
+.identity-avatar:active { transform: scale(0.92); transition-duration: 100ms; }
+.identity-avatar.selected {
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
+  background: var(--bg-slate);
+  transform: translateY(-1px);
+}
+.identity-avatar .tooltip {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: var(--bg-elevated); color: var(--fg);
+  font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 6px;
+  white-space: nowrap;
+  border: 1px solid var(--border-strong);
+  opacity: 0; pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+/* Identity click feedback — pure CSS (no GSAP dependency) */
+@keyframes identity-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.identity-avatar.clicked {
+  animation: identity-pop 320ms var(--ease-spring);
+}
+.dock-avatar.clicked {
+  animation: identity-pop 320ms var(--ease-spring);
+}
+.identity-avatar:hover .tooltip { opacity: 1; }
+.identity-avatar.student { background: #065F46; }
+.identity-avatar.entrepreneur { background: #92400E; }
+.identity-avatar.developer { background: #1E3A5F; }
+.identity-avatar.designer { background: #831843; }
+.identity-avatar.writer { background: #4C1D95; }
+.identity-avatar.researcher { background: #1E4052; }
+
+/* Send button */
+.btn-send {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 9999px; border: none;
+  background: #FFFFFF; color: #1F2023; cursor: pointer;
+  transition: background 200ms ease, box-shadow 200ms ease, transform 200ms var(--ease-spring);
+  flex-shrink: 0;
+  position: relative; z-index: 10;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn-send:hover {
+  background: #E5E5E7;
+  box-shadow: 0 2px 10px rgba(255,255,255,0.15);
+  transform: scale(1.06);
+}
+.btn-send:active { transform: scale(0.92); }
+
+/* ── Bottom Dock Bar (glass — the only glass exception) ── */
+.dock-bar {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(120px);
+  z-index: var(--z-dock);
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  background: var(--glass-bg);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-pill);
+  opacity: 0; pointer-events: none;
+  transition: transform 400ms var(--ease-out), opacity 300ms ease;
+}
+.dock-bar.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1; pointer-events: all;
+}
+
+.dock-avatars { display: flex; align-items: center; gap: 1px; }
+.dock-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 15px;
+  border: 2px solid transparent;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+.dock-avatar.student { background: #065F46; }
+.dock-avatar.entrepreneur { background: #92400E; }
+.dock-avatar.developer { background: #1E3A5F; }
+.dock-avatar.designer { background: #831843; }
+.dock-avatar.writer { background: #4C1D95; }
+.dock-avatar.researcher { background: #1E4052; }
+.dock-avatar:hover { transform: scale(1.08); }
+.dock-avatar.selected {
+  border-color: #8B5CF6;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
+}
+
+.dock-sep { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+
+.dock-input {
+  width: 140px; background: transparent; border: none;
+  font-family: var(--font-ui); font-size: 14px; font-weight: 600;
+  color: var(--fg); outline: none;
+  transition: width 320ms var(--ease-out);
+  caret-color: var(--synaptic-purple);
+  padding-right: 4px;
+}
+.dock-input:focus { width: 210px; }
+.dock-input::placeholder { color: var(--fg-tertiary); font-weight: 400; }
+
+.dock-model-wrap { position: relative; }
+.dock-model-badge {
+  font-size: 11px; font-weight: 600; color: var(--fg-secondary);
+  padding: 4px 10px; border-radius: var(--radius-pill);
+  background: var(--bg-slate); white-space: nowrap;
+  cursor: pointer; border: 1px solid var(--border);
+  display: inline-flex; align-items: center; gap: 5px;
+  transition: border-color 200ms ease, background 200ms ease, color 200ms ease;
+}
+.dock-model-badge:hover { border-color: var(--border-strong); color: var(--fg); }
+.dock-model-menu {
+  position: absolute; bottom: calc(100% + 8px); right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.4);
+  padding: 6px; min-width: 160px; z-index: 100;
+  opacity: 0; visibility: hidden; transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms var(--ease-spring), visibility 0s 180ms;
+}
+.dock-model-menu.open { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: all; transition: opacity 180ms ease, transform 180ms var(--ease-spring), visibility 0s 0s; }
+.dock-model-menu .model-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+  color: var(--fg); cursor: pointer;
+  transition: background 150ms ease;
+}
+.dock-model-menu .model-item:hover { background: var(--bg-slate); }
+.dock-model-menu .model-item.selected { color: #A78BFA; background: rgba(139,92,246,0.12); }
+
+/* Dice button */
+.dice-btn {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: rgba(59,130,246,0.10);
+  color: var(--dendritic-blue);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 150ms ease, transform 150ms var(--ease-spring);
+  flex-shrink: 0;
+}
+.dice-btn:hover { transform: scale(1.08); }
+.dice-btn:active { transform: scale(0.92); }
+.dice-btn.hidden { opacity: 0; pointer-events: none; }
+
+/* Folder button */
+.folder-btn {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--axonal-pink-soft);
+  color: var(--axonal-pink);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 150ms var(--ease-spring);
+  flex-shrink: 0;
+  position: relative;
+}
+.folder-btn:hover { transform: scale(1.08); }
+.folder-btn:active { transform: scale(0.92); }
+
+/* Folder panel */
+.folder-panel {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(10px);
+  z-index: var(--z-panel);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  min-width: 200px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+.folder-panel.open { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+.folder-panel-title {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--fg-secondary);
+  margin-bottom: 8px;
+}
+.folder-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; color: var(--fg);
+  cursor: grab;
+  transition: background 150ms ease;
+}
+.folder-item:hover { background: var(--bg-slate); }
+.folder-item:active { cursor: grabbing; }
+.folder-empty {
+  font-size: 12px; color: var(--fg-tertiary);
+  text-align: center; padding: 8px;
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(120px);
+  z-index: 9999;
+  background: var(--bg-elevated); color: var(--fg);
+  font-family: var(--font-ui); font-size: 14px; font-weight: 600;
+  padding: 14px 28px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  pointer-events: none; opacity: 0;
+  transition: transform 380ms var(--ease-out), opacity 280ms ease;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .dialog-card { padding: 12px; }
+  .dialog-eyebrow { font-size: 10px; padding: 2px 6px 6px; }
+  .seed-textarea { font-size: 15px; padding: 2px 6px 6px 22px; }
+  .dialog-bar { padding: 6px 4px 2px; }
+  .node.selected { font-size: 16px; padding: 10px 20px; }
+  .node.visited, .node.unvisited { font-size: 14px; padding: 8px 18px; }
+  .dock-bar { padding: 6px 12px; gap: 4px; bottom: 16px; }
+  .dock-input { width: 80px; }
+  .dock-input:focus { width: 130px; }
+  .identity-avatar { width: 30px; height: 30px; font-size: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  .node { opacity: 1 !important; }
+  .conn-path { stroke-dasharray: none !important; }
+  .dock-bar { transition: none !important; }
+}
+
+/* ── Credit Badge (dock bar) ── */
+.credit-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: var(--synaptic-purple-fill);
+  font-family: var(--font-ui); font-size: 12px; font-weight: 700;
+  color: var(--synaptic-purple);
+  cursor: pointer; user-select: none;
+  transition: background 200ms ease, color 200ms ease, transform 150ms var(--ease-spring);
+  white-space: nowrap;
+}
+.credit-badge:hover { background: rgba(124,58,237,0.22); transform: scale(1.04); }
+.credit-badge:active { transform: scale(0.94); }
+.credit-badge.low { background: var(--axonal-pink-soft); color: var(--axonal-pink); }
+.credit-badge.low:hover { background: rgba(219,39,119,0.2); }
+
+/* ── Report Button (dock bar) ── */
+.report-btn {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: rgba(106,153,85,0.12);
+  color: #6A9955;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 150ms ease, transform 150ms var(--ease-spring), background 200ms ease;
+  flex-shrink: 0;
+}
+.report-btn:hover { background: rgba(106,153,85,0.22); transform: scale(1.08); }
+.report-btn:active { transform: scale(0.92); }
+.report-btn.disabled { opacity: 0.35; pointer-events: none; }
+.report-btn.generating { pointer-events: none; }
+.report-btn.generating .report-spinner {
+  display: block;
+  animation: spin 0.8s linear infinite;
+}
+.report-btn .report-spinner { display: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Credit Confirm Dialog (overlay + card) ── */
+.credit-overlay {
+  position: fixed; inset: 0; z-index: 9998;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: rgba(0,0,0,0.55);
+  opacity: 0; pointer-events: none;
+  transition: opacity 300ms var(--ease-out);
+}
+.credit-overlay.open { opacity: 1; pointer-events: all; }
+.credit-card {
+  width: 100%; max-width: 420px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+  transform: translateY(12px) scale(0.97);
+  transition: transform 400ms var(--ease-spring);
+}
+.credit-overlay.open .credit-card { transform: translateY(0) scale(1); }
+.credit-title {
+  font-family: var(--font-ui); font-size: 20px; font-weight: 700;
+  color: var(--fg); letter-spacing: -0.02em; margin-bottom: 6px;
+}
+.credit-subtitle {
+  font-size: 13px; color: var(--fg-secondary); margin-bottom: 20px;
+}
+.credit-info-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-radius: var(--radius-sm);
+  background: var(--bg-deep); margin-bottom: 10px;
+  font-size: 14px; font-weight: 600;
+}
+.credit-info-row .label { color: var(--fg-secondary); }
+.credit-info-row .value { color: var(--fg); font-family: var(--font-mono); }
+.credit-info-row .value.danger { color: var(--axonal-pink); }
+.credit-path-preview {
+  padding: 12px 16px; border-radius: var(--radius-sm);
+  background: var(--bg-deep); margin-bottom: 16px;
+  font-size: 13px; color: var(--fg-secondary); line-height: 1.6;
+}
+.credit-path-preview .path-chain {
+  color: var(--fg); font-weight: 600; font-size: 14px;
+}
+.credit-path-preview .path-chain span { color: var(--synaptic-purple); }
+.credit-actions {
+  display: flex; gap: 10px; margin-top: 20px;
+}
+.credit-actions .btn { flex: 1; }
+.credit-insufficient {
+  text-align: center; padding: 20px 0;
+}
+.credit-insufficient .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.6; }
+.credit-insufficient p { color: var(--fg-secondary); font-size: 14px; margin-bottom: 16px; }
+
+/* ── Report Panel (slide-in from right) ── */
+.report-panel-overlay {
+  position: fixed; inset: 0; z-index: 9997;
+  background: rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none;
+  transition: opacity 350ms var(--ease-out);
+}
+.report-panel-overlay.open { opacity: 1; pointer-events: all; }
+.report-panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 520px; max-width: 100vw; z-index: 9998;
+  background: var(--bg-elevated);
+  border-left: 1px solid var(--border-strong);
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 420ms var(--ease-spring);
+  box-shadow: -8px 0 40px rgba(0,0,0,0.3);
+}
+.report-panel.open { transform: translateX(0); }
+.report-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.report-panel-title {
+  font-family: var(--font-ui); font-size: 18px; font-weight: 700;
+  color: var(--fg); letter-spacing: -0.02em;
+}
+.report-panel-actions {
+  display: flex; gap: 6px;
+}
+.report-panel-icon-btn {
+  width: 34px; height: 34px; border-radius: 50%; border: none;
+  background: var(--bg-slate); color: var(--fg-secondary);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; transition: background 180ms ease, color 180ms ease;
+}
+.report-panel-icon-btn:hover { background: var(--border-strong); color: var(--fg); }
+.report-panel-body {
+  flex: 1; overflow-y: auto; padding: 24px;
+  font-size: 14px; line-height: 1.7; color: var(--fg-secondary);
+}
+.report-panel-body h2 {
+  font-family: var(--font-ui); font-size: 16px; font-weight: 700;
+  color: var(--fg); margin: 24px 0 10px; letter-spacing: -0.01em;
+}
+.report-panel-body h2:first-child { margin-top: 0; }
+.report-panel-body h3 {
+  font-family: var(--font-ui); font-size: 14px; font-weight: 700;
+  color: var(--fg); margin: 16px 0 6px;
+}
+.report-panel-body p { margin-bottom: 8px; }
+.report-panel-body ul { padding-left: 18px; margin-bottom: 12px; }
+.report-panel-body li { margin-bottom: 4px; }
+.report-panel-body .highlight {
+  color: var(--synaptic-purple); font-weight: 600;
+}
+.report-panel-body .path-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 700;
+  background: var(--synaptic-purple-fill); color: var(--synaptic-purple);
+  margin: 0 2px;
+}
+.report-panel-body .insight-box {
+  background: var(--bg-deep); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 16px;
+  margin: 12px 0;
+}
+.report-panel-body .insight-box.green { border-left: 3px solid #6A9955; }
+.report-panel-body .insight-box.purple { border-left: 3px solid var(--synaptic-purple); }
+.report-panel-body .insight-box.pink { border-left: 3px solid var(--axonal-pink); }
+.report-panel-body .meta-bar {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  padding: 10px 0; border-top: 1px solid var(--border);
+  margin-top: 24px;
+  font-size: 12px; color: var(--fg-tertiary);
+}
+.report-panel-body .meta-bar span { white-space: nowrap; }
+.report-panel-body::-webkit-scrollbar { width: 6px; }
+.report-panel-body::-webkit-scrollbar-track { background: transparent; }
+.report-panel-body::-webkit-scrollbar-thumb { background-color: var(--border-strong); border-radius: 3px; }
+
+/* ── Credit Panel (click badge) ── */
+.credit-detail-panel {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(10px);
+  z-index: var(--z-panel);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  min-width: 260px; max-width: 320px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+.credit-detail-panel.open { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+.credit-detail-balance {
+  font-family: var(--font-ui); font-size: 28px; font-weight: 800;
+  color: var(--synaptic-purple); letter-spacing: -0.02em;
+  margin-bottom: 2px;
+}
+.credit-detail-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--fg-secondary);
+  margin-bottom: 12px;
+}
+.credit-detail-history {
+  max-height: 180px; overflow-y: auto;
+  border-top: 1px solid var(--border); padding-top: 8px;
+}
+.credit-detail-history .h-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; font-size: 12px;
+}
+.credit-detail-history .h-item .h-desc { color: var(--fg-secondary); }
+.credit-detail-history .h-item .h-amount { font-weight: 700; color: var(--fg); font-family: var(--font-mono); }
+.credit-detail-history .h-item .h-amount.deduct { color: var(--axonal-pink); }
+.credit-detail-empty { font-size: 12px; color: var(--fg-tertiary); text-align: center; padding: 12px 0; }
+.credit-recharge-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 10px; border-radius: var(--radius-pill);
+  border: 1.5px dashed var(--border-strong); background: transparent;
+  font-family: var(--font-ui); font-size: 13px; font-weight: 700;
+  color: var(--fg-tertiary); cursor: not-allowed;
+  margin-top: 10px; transition: border-color 200ms ease, color 200ms ease;
+  position: relative;
+}
+.credit-recharge-btn:hover { border-color: var(--fg-tertiary); color: var(--fg-secondary); }
+.credit-recharge-btn .tooltip {
+  position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: var(--bg-elevated); color: var(--fg);
+  font-family: var(--font-ui); font-size: 11px; font-weight: 600;
+  padding: 4px 10px; border-radius: 6px;
+  white-space: nowrap; border: 1px solid var(--border-strong);
+  opacity: 0; pointer-events: none;
+  transition: opacity 180ms ease;
+}
+.credit-recharge-btn:hover .tooltip { opacity: 1; }
+
+/* ── Responsive for report panel ── */
+@media (max-width: 600px) {
+  .report-panel { width: 100vw; }
+  .credit-card { padding: 20px; }
+  .credit-detail-panel { left: 16px; right: 16px; transform: translateX(0) translateY(10px); max-width: none; }
+  .credit-detail-panel.open { transform: translateX(0) translateY(0); }
+}
+
+/* Focus visible global */
+:focus-visible { outline: 2.5px solid var(--synaptic-purple); outline-offset: 3px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a href="index.html" class="nav-back">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+  <div style="flex:1;"></div>
+  <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--fg);">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="display:block;"><path d="M12 2L14.2 9.8L22 12L14.2 14.2L12 22L9.8 14.2L2 12L9.8 9.8Z" fill="#7C3AED"/><circle cx="12" cy="12" r="2.5" fill="#A78BFA"/></svg>
+    <span class="nav-brand">SynapseSpark</span>
+  </a>
+  <div style="flex:1;"></div>
+  <!-- Settings -->
+  <div class="settings-wrap" id="settingsWrap">
+    <button class="settings-btn" id="settingsBtn" aria-label="Settings" aria-expanded="false">
+      <svg class="gear-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    </button>
+    <div class="settings-dropdown" id="settingsDropdown">
+      <div class="settings-section">
+        <p class="settings-section-label">Language</p>
+        <div class="settings-lang-row">
+          <button class="settings-lang-chip active" data-nav-lang="en">EN</button>
+          <button class="settings-lang-chip" data-nav-lang="zh-Hans">简中</button>
+          <button class="settings-lang-chip" data-nav-lang="zh-Hant">繁中</button>
+        </div>
+      </div>
+      <div class="settings-section">
+        <button class="settings-item" id="navPricingBtn">
+          <span class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+          <span data-i18n="nav.pricing">Recharge</span>
+        </button>
+        <button class="settings-item" id="navThemeBtn">
+          <span class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
+          <span data-i18n="nav.appearance">Appearance</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- CANVAS -->
+<div class="canvas-stage" id="canvasStage">
+  <div class="canvas-world" id="canvasWorld">
+    <svg class="connections-layer" id="connSvg"></svg>
+    <div id="nodeLayer"></div>
+  </div>
+</div>
+
+<!-- CENTERED DIALOG (unchanged design) -->
+<div class="dialog-overlay" id="dialogOverlay">
+  <div class="dialog-card" id="dialogCard">
+    <p class="dialog-eyebrow" data-i18n="dialog.eyebrow">&lt;SynapseSpark /&gt;</p>
+    <div class="seed-textarea-wrap">
+      <textarea class="seed-textarea" id="seedTextarea"
+        data-i18n-placeholder="dialog.placeholder" placeholder="Enter a word to start exploring..." autocomplete="off" maxlength="20" rows="1"></textarea>
+    </div>
+    <div class="dialog-bar">
+      <div class="dialog-bar-left">
+        <div class="model-dropdown" id="modelDropdown">
+          <button class="model-trigger" id="modelTrigger">
+            <span class="model-dot ds"></span>
+            <span id="modelLabel">DeepSeek</span>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="model-menu">
+            <div class="model-item selected" data-model="deepseek"><span class="model-dot ds"></span>DeepSeek</div>
+            <div class="model-item" data-model="qwen"><span class="model-dot qwen"></span>通义千问</div>
+            <div class="model-item" data-model="glm"><span class="model-dot glm"></span>智谱 GLM</div>
+            <div class="model-item" data-model="kimi"><span class="model-dot kimi"></span>Kimi</div>
+            <div class="model-item" data-model="doubao"><span class="model-dot doubao"></span>豆包</div>
+          </div>
+        </div>
+        <div class="identity-row" id="identityRow">
+          <div class="identity-avatar student selected" data-identity="student"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/></svg><span class="tooltip" data-i18n="identity.student">Student</span></div>
+          <div class="identity-avatar entrepreneur" data-identity="entrepreneur"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="12.01"/></svg><span class="tooltip" data-i18n="identity.entrepreneur">Entrepreneur</span></div>
+          <div class="identity-avatar developer" data-identity="developer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg><span class="tooltip" data-i18n="identity.developer">Developer</span></div>
+          <div class="identity-avatar designer" data-identity="designer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="14.5" r="2.5"/><path d="M9 16L13.5 9.5M13.5 9.5L15 8"/></svg><span class="tooltip" data-i18n="identity.designer">Designer</span></div>
+          <div class="identity-avatar writer" data-identity="writer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg><span class="tooltip" data-i18n="identity.writer">Writer</span></div>
+          <div class="identity-avatar researcher" data-identity="researcher"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="7"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/><path d="M6 2l4 4"/><path d="M16 4l-4 4"/></svg><span class="tooltip" data-i18n="identity.researcher">Researcher</span></div>
+        </div>
+      </div>
+      <button class="btn-send" id="dialogSend" data-i18n-aria="dialog.send" aria-label="Start exploring">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="5 12 12 5 19 12"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM DOCK BAR -->
+<div class="dock-bar" id="dockBar">
+  <div class="dock-avatars" id="dockAvatars">
+    <div class="dock-avatar student selected" data-identity="student"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 4 3 6 3s6-1 6-3v-5"/></svg></div>
+    <div class="dock-avatar entrepreneur" data-identity="entrepreneur"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div>
+    <div class="dock-avatar developer" data-identity="developer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg></div>
+    <div class="dock-avatar designer" data-identity="designer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="14.5" r="2.5"/><path d="M9 16L13.5 9.5M13.5 9.5L15 8"/></svg></div>
+    <div class="dock-avatar writer" data-identity="writer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></div>
+    <div class="dock-avatar researcher" data-identity="researcher"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="10" r="7"/><line x1="12" y1="17" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/><path d="M6 2l4 4"/><path d="M16 4l-4 4"/></svg></div>
+  </div>
+  <div class="dock-sep"></div>
+  <input type="text" class="dock-input" id="dockInput" data-i18n-placeholder="dock.placeholder" placeholder="New word..." autocomplete="off" maxlength="20">
+  <div class="dock-model-wrap" id="dockModelWrap">
+    <button class="dock-model-badge" id="dockModelBadge"><span id="dockModelLabel">DeepSeek</span>
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="dock-model-menu" id="dockModelMenu">
+      <div class="model-item selected" data-model="deepseek"><span class="model-dot ds"></span>DeepSeek</div>
+      <div class="model-item" data-model="qwen"><span class="model-dot qwen"></span>通义千问</div>
+      <div class="model-item" data-model="glm"><span class="model-dot glm"></span>智谱 GLM</div>
+      <div class="model-item" data-model="kimi"><span class="model-dot kimi"></span>Kimi</div>
+      <div class="model-item" data-model="doubao"><span class="model-dot doubao"></span>豆包</div>
+    </div>
+  </div>
+  <button class="dice-btn hidden" id="diceBtn" data-i18n-aria="dock.dice" aria-label="Random word">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.5" fill="currentColor"/></svg>
+  </button>
+  <button class="folder-btn" id="folderBtn" data-i18n-aria="dock.folder" aria-label="Recent words">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+  </button>
+  <div class="dock-sep"></div>
+  <div class="credit-badge" id="creditBadge" data-i18n-aria="credit.badge" aria-label="Credits">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="creditCount">100</span>
+  </div>
+  <button class="report-btn disabled" id="reportBtn" data-i18n-aria="report.generate" aria-label="Generate Summary Report">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" id="reportBtnIcon"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    <svg class="report-spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display:none;"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+  </button>
+</div>
+
+<!-- FOLDER PANEL -->
+<div class="folder-panel" id="folderPanel">
+  <div class="folder-panel-title" data-i18n="folder.title">Recent Words</div>
+  <div id="folderList"><div class="folder-empty" data-i18n="folder.empty">No recent words</div></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<!-- CREDIT CONFIRMATION DIALOG -->
+<div class="credit-overlay" id="creditOverlay">
+  <div class="credit-card">
+    <div class="credit-title" data-i18n="credit.title">生成总结报告</div>
+    <div class="credit-subtitle" data-i18n="credit.subtitle">将基于当前探索路径生成完整分析报告</div>
+    <div class="credit-info-row">
+      <span class="label" data-i18n="credit.cost">消耗积分</span>
+      <span class="value danger">-10</span>
+    </div>
+    <div class="credit-info-row">
+      <span class="label" data-i18n="credit.balance">当前积分</span>
+      <span class="value" id="creditConfirmBalance">100</span>
+    </div>
+    <div class="credit-info-row">
+      <span class="label" data-i18n="credit.after">生成后剩余</span>
+      <span class="value" id="creditConfirmAfter">90</span>
+    </div>
+    <div class="credit-path-preview">
+      <div style="font-size:11px;color:var(--fg-tertiary);margin-bottom:4px;" data-i18n="credit.path">探索路径</div>
+      <div class="path-chain" id="creditPathChain">—</div>
+    </div>
+    <div class="credit-insufficient" id="creditInsufficient" style="display:none;">
+      <div class="icon">⚡</div>
+      <p data-i18n="credit.insufficient">积分不足，无法生成报告。请充值后重试。</p>
+      <button class="btn btn-secondary" id="creditInsufficientRecharge" style="width:100%;" data-i18n="credit.goRecharge">查看充值方式</button>
+    </div>
+    <div class="credit-actions" id="creditActions">
+      <button class="btn btn-secondary" id="creditCancel" data-i18n="credit.cancel">取消</button>
+      <button class="btn btn-primary" id="creditConfirm" data-i18n="credit.confirm">确认生成 (-10)</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT PANEL -->
+<div class="report-panel-overlay" id="reportPanelOverlay"></div>
+<div class="report-panel" id="reportPanel">
+  <div class="report-panel-header">
+    <span class="report-panel-title" data-i18n="report.title">总结报告</span>
+    <div class="report-panel-actions">
+      <button class="report-panel-icon-btn" id="reportCopy" data-i18n-aria="report.copy" aria-label="Copy report">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </button>
+      <button class="report-panel-icon-btn" id="reportClose" data-i18n-aria="report.close" aria-label="Close">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="report-panel-body" id="reportPanelBody"></div>
+</div>
+
+<!-- CREDIT DETAIL PANEL -->
+<div class="credit-detail-panel" id="creditDetailPanel">
+  <div class="credit-detail-balance" id="creditDetailBalance">100</div>
+  <div class="credit-detail-label" data-i18n="credit.detailLabel">可用积分</div>
+  <div class="credit-detail-history" id="creditDetailHistory">
+    <div class="credit-detail-empty" data-i18n="credit.noHistory">暂无记录</div>
+  </div>
+  <button class="credit-recharge-btn" id="creditRechargeBtn" data-i18n="credit.recharge">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="5 12 12 5 19 12"/></svg>
+    <span data-i18n="credit.rechargeLabel">充值积分</span>
+    <span class="tooltip" data-i18n="credit.comingSoon">功能即将开放</span>
+  </button>
+</div>
+
+
+<script>
+// ============================================================================
+// I18N — shared with index.html via localStorage('synapse-lang')
+// ============================================================================
+const i18n = {
+  'zh-Hant': {
+    'page.title': 'SynapseSpark — 探索',
+    'nav.pricing': '充值積分',
+    'nav.appearance': '外觀',
+    'dialog.eyebrow': '&lt;SynapseSpark /&gt;',
+    'dialog.placeholder': '輸入一個詞開始探索…',
+    'dialog.send': '開始探索',
+    'identity.student': '學生',
+    'identity.entrepreneur': '創業者',
+    'identity.developer': '開發者',
+    'identity.designer': '設計師',
+    'identity.writer': '作家',
+    'identity.researcher': '研究者',
+    'dock.placeholder': '新詞彙…',
+    'dock.dice': '隨機詞彙',
+    'dock.folder': '最近詞彙',
+    'folder.title': '最近詞彙',
+    'folder.empty': '暫無記錄',
+    'bookmark': '收藏',
+    'toast.enter_word': '請輸入一個詞',
+    'credit.title': '生成總結報告',
+    'credit.subtitle': '將基於當前探索路徑生成完整分析報告',
+    'credit.cost': '消耗積分',
+    'credit.balance': '當前積分',
+    'credit.after': '生成後剩餘',
+    'credit.path': '探索路徑',
+    'credit.insufficient': '積分不足，無法生成報告。請充值後重試。',
+    'credit.goRecharge': '查看充值方式',
+    'credit.cancel': '取消',
+    'credit.confirm': '確認生成 (-10)',
+    'credit.badge': '積分',
+    'credit.detailLabel': '可用積分',
+    'credit.noHistory': '暫無記錄',
+    'credit.recharge': '充值積分',
+    'credit.rechargeLabel': '充值積分',
+    'credit.comingSoon': '功能即將開放',
+    'report.generate': '生成總結報告',
+    'report.title': '總結報告',
+    'report.copy': '複製報告',
+    'report.close': '關閉',
+    'report.section1': '一、探索路徑回顧',
+    'report.section2': '二、邏輯分析',
+    'report.section3': '三、可行建議與方案',
+    'report.section4': '四、收藏節點一覽',
+    'report.meta': '數據摘要',
+    'report.generatedAt': '生成時間',
+    'report.identity': '身份視角',
+    'report.depth': '探索深度',
+    'report.nodeCount': '節點總數',
+    'report.bookmarkCount': '收藏數',
+    'report.treeCount': '探索樹數',
+    'report.pathLabel': '路徑',
+    'report.rootWord': '起始詞',
+    'report.currentWord': '當前詞',
+    'report.suggestion': '建議',
+    'report.copied': '報告已複製',
+  },
+  'zh-Hans': {
+    'page.title': 'SynapseSpark — 探索',
+    'nav.pricing': '充值积分',
+    'nav.appearance': '外观',
+    'dialog.eyebrow': '&lt;SynapseSpark /&gt;',
+    'dialog.placeholder': '输入一个词开始探索…',
+    'dialog.send': '开始探索',
+    'identity.student': '学生',
+    'identity.entrepreneur': '创业者',
+    'identity.developer': '开发者',
+    'identity.designer': '设计师',
+    'identity.writer': '作家',
+    'identity.researcher': '研究者',
+    'dock.placeholder': '新词汇…',
+    'dock.dice': '随机词汇',
+    'dock.folder': '最近词汇',
+    'folder.title': '最近词汇',
+    'folder.empty': '暂无记录',
+    'bookmark': '收藏',
+    'toast.enter_word': '请输入一个词',
+    'credit.title': '生成总结报告',
+    'credit.subtitle': '将基于当前探索路径生成完整分析报告',
+    'credit.cost': '消耗积分',
+    'credit.balance': '当前积分',
+    'credit.after': '生成后剩余',
+    'credit.path': '探索路径',
+    'credit.insufficient': '积分不足，无法生成报告。请充值后重试。',
+    'credit.goRecharge': '查看充值方式',
+    'credit.cancel': '取消',
+    'credit.confirm': '确认生成 (-10)',
+    'credit.badge': '积分',
+    'credit.detailLabel': '可用积分',
+    'credit.noHistory': '暂无记录',
+    'credit.recharge': '充值积分',
+    'credit.rechargeLabel': '充值积分',
+    'credit.comingSoon': '功能即将开放',
+    'report.generate': '生成总结报告',
+    'report.title': '总结报告',
+    'report.copy': '复制报告',
+    'report.close': '关闭',
+    'report.section1': '一、探索路径回顾',
+    'report.section2': '二、逻辑分析',
+    'report.section3': '三、可行建议与方案',
+    'report.section4': '四、收藏节点一览',
+    'report.meta': '数据摘要',
+    'report.generatedAt': '生成时间',
+    'report.identity': '身份视角',
+    'report.depth': '探索深度',
+    'report.nodeCount': '节点总数',
+    'report.bookmarkCount': '收藏数',
+    'report.treeCount': '探索树数',
+    'report.pathLabel': '路径',
+    'report.rootWord': '起始词',
+    'report.currentWord': '当前词',
+    'report.suggestion': '建议',
+    'report.copied': '报告已复制',
+  },
+  'en': {
+    'page.title': 'SynapseSpark — Explore',
+    'nav.pricing': 'Recharge',
+    'nav.appearance': 'Appearance',
+    'dialog.eyebrow': '&lt;SynapseSpark /&gt;',
+    'dialog.placeholder': 'Enter a word to start exploring...',
+    'dialog.send': 'Start exploring',
+    'identity.student': 'Student',
+    'identity.entrepreneur': 'Entrepreneur',
+    'identity.developer': 'Developer',
+    'identity.designer': 'Designer',
+    'identity.writer': 'Writer',
+    'identity.researcher': 'Researcher',
+    'dock.placeholder': 'New word...',
+    'dock.dice': 'Random word',
+    'dock.folder': 'Recent words',
+    'folder.title': 'Recent Words',
+    'folder.empty': 'No recent words',
+    'bookmark': 'Bookmark',
+    'toast.enter_word': 'Please enter a word',
+    'credit.title': 'Generate Summary Report',
+    'credit.subtitle': 'Generate a complete analysis report from your exploration path',
+    'credit.cost': 'Cost',
+    'credit.balance': 'Current Balance',
+    'credit.after': 'After Generation',
+    'credit.path': 'Exploration Path',
+    'credit.insufficient': 'Insufficient credits. Please recharge to continue.',
+    'credit.goRecharge': 'View Recharge Options',
+    'credit.cancel': 'Cancel',
+    'credit.confirm': 'Generate (-10)',
+    'credit.badge': 'Credits',
+    'credit.detailLabel': 'Available Credits',
+    'credit.noHistory': 'No transactions yet',
+    'credit.recharge': 'Recharge Credits',
+    'credit.rechargeLabel': 'Recharge',
+    'credit.comingSoon': 'Coming Soon',
+    'report.generate': 'Generate Summary Report',
+    'report.title': 'Summary Report',
+    'report.copy': 'Copy report',
+    'report.close': 'Close',
+    'report.section1': 'I. Exploration Path Review',
+    'report.section2': 'II. Logical Analysis',
+    'report.section3': 'III. Actionable Suggestions',
+    'report.section4': 'IV. Bookmarked Nodes',
+    'report.meta': 'Summary',
+    'report.generatedAt': 'Generated at',
+    'report.identity': 'Identity',
+    'report.depth': 'Depth',
+    'report.nodeCount': 'Total Nodes',
+    'report.bookmarkCount': 'Bookmarks',
+    'report.treeCount': 'Trees',
+    'report.pathLabel': 'Path',
+    'report.rootWord': 'Root Word',
+    'report.currentWord': 'Current Word',
+    'report.suggestion': 'Suggestion',
+    'report.copied': 'Report copied to clipboard',
+  }
+};
+let currentLang = 'en';
+
+function t(key) {
+  const dict = i18n[currentLang] || i18n['en'];
+  return dict[key] || key;
+}
+
+function applyI18n(lang) {
+  currentLang = lang;
+  const dict = i18n[lang] || i18n['en'];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const text = dict[key];
+    if (text) el.innerHTML = text;
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const text = dict[key];
+    if (text) el.setAttribute('placeholder', text);
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    const key = el.getAttribute('data-i18n-aria');
+    const text = dict[key];
+    if (text) el.setAttribute('aria-label', text);
+  });
+  document.title = dict['page.title'] || 'SynapseSpark — Explore';
+  localStorage.setItem('synapse-lang', lang);
+  // Re-render dynamic i18n elements (if function is already defined)
+  if (typeof renderFolderPanel === 'function') renderFolderPanel();
+}
+
+// Restore saved language
+(function() {
+  const savedLang = localStorage.getItem('synapse-lang');
+  if (savedLang && i18n[savedLang]) {
+    applyI18n(savedLang);
+    document.querySelectorAll('.settings-lang-chip').forEach(c => {
+      c.classList.toggle('active', c.getAttribute('data-nav-lang') === savedLang);
+    });
+  }
+})();
+
+// ── Settings dropdown ──
+(function() {
+  const wrap = document.getElementById('settingsWrap');
+  const btn = document.getElementById('settingsBtn');
+  const dropdown = document.getElementById('settingsDropdown');
+  let open = false;
+
+  function openMenu() {
+    open = true;
+    btn.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+    dropdown.classList.add('open');
+  }
+  function closeMenu() {
+    open = false;
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    dropdown.classList.remove('open');
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    open ? closeMenu() : openMenu();
+  });
+  document.addEventListener('click', (e) => {
+    if (open && !wrap.contains(e.target)) closeMenu();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && open) closeMenu();
+  });
+
+  // Language chips
+  dropdown.querySelectorAll('.settings-lang-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      dropdown.querySelectorAll('.settings-lang-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      applyI18n(chip.getAttribute('data-nav-lang'));
+      closeMenu();
+    });
+  });
+
+  // Pricing
+  document.getElementById('navPricingBtn').addEventListener('click', () => {
+    closeMenu();
+    window.location.href = '/pricing';
+  });
+
+  // Theme toggle
+  const savedTheme = localStorage.getItem('synapse-theme');
+  if (savedTheme === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+
+  document.getElementById('navThemeBtn').addEventListener('click', () => {
+    closeMenu();
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    const next = isLight ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('synapse-theme', next);
+  });
+})();
+
+// ============================================================================
+// WORD DATABASE
+// ============================================================================
+const WORD_DB = {
+  '思维':['逻辑','认知','直觉','分析','反思'],'逻辑':['推理','演绎','归纳','数学','程序'],
+  '认知':['心理','意识','记忆','学习','感知'],'直觉':['灵感','感性','本能','创意','情感'],
+  '分析':['数据','图表','洞察','拆解','判断'],'反思':['成长','回顾','自省','改进','沉淀'],
+  '科技':['AI','程序','数据','自动化','创新'],'AI':['机器学习','神经网络','深度学习','自然语言','计算机视觉'],
+  '设计':['美学','功能','体验','简洁','细节'],'创业':['市场','产品','团队','资金','增长'],
+  '学习':['知识','技能','练习','理解','记忆'],'创意':['灵感','想象','突破','原创','表达'],
+  '自然':['生态','演化','环境','生命','宇宙'],'情感':['快乐','悲伤','爱','愤怒','平静'],
+  '音乐':['旋律','节奏','和声','音色','情感'],'艺术':['绘画','雕塑','摄影','电影','文学'],
+  '哲学':['存在','意义','伦理','真理','意识'],'程序':['代码','算法','架构','测试','部署'],
+  '市场':['需求','竞争','定位','营销','品牌'],'教育':['老师','学生','课程','知识','成长'],
+  '健康':['运动','饮食','睡眠','心理','预防'],'城市':['建筑','交通','文化','人口','规划'],
+  '数据':['统计','模式','预测','可视化','数据库'],'品牌':['识别','故事','价值','信任','体验'],
+  '未来':['趋势','预测','科技','变革','愿景'],'数学':['数字','公式','证明','几何','代数'],
+  '心理':['行为','情绪','性格','动机','潜意识'],'语言':['文字','语法','语义','沟通','文化'],
+  '宇宙':['星系','黑洞','时间','空间','起源'],'游戏':['规则','挑战','奖励','沉浸','互动'],
+  '美食':['食材','烹饪','风味','文化','分享'],
+  'Mind':['Logic','Cognition','Intuition','Analysis','Reflection'],
+  'Logic':['Reasoning','Deduction','Induction','Mathematics','Code'],
+  'Design':['Aesthetics','Function','Experience','Simplicity','Detail'],
+  'Nature':['Ecology','Evolution','Environment','Life','Cosmos'],
+  'Art':['Painting','Sculpture','Photography','Film','Literature'],
+  'Music':['Melody','Rhythm','Harmony','Timbre','Emotion'],
+  'Future':['Trends','Prediction','Technology','Change','Vision'],
+  'Code':['Algorithm','Architecture','Testing','Deployment','Data'],
+};
+
+function getAssociations(word) {
+  if (WORD_DB[word]) return WORD_DB[word];
+  const keys = Object.keys(WORD_DB);
+  let bestScore = 0, bestKey = null;
+  const wordChars = new Set(word);
+  for (const key of keys) {
+    const keyChars = new Set(key);
+    let overlap = 0;
+    for (const c of wordChars) { if (keyChars.has(c)) overlap++; }
+    const score = overlap / Math.max(wordChars.size, keyChars.size);
+    if (score > bestScore) { bestScore = score; bestKey = key; }
+  }
+  if (bestScore >= 0.3 && bestKey) return WORD_DB[bestKey];
+  return ['思考','探索','创造','连结','发现'];
+}
+
+// ============================================================================
+// STATE
+// ============================================================================
+let nextId = 1;
+function uid() { return 'n' + (nextId++); }
+
+const IDENTITY_COLORS = {
+  student:      { bg: '#10B981', border: '#34D399', line: '#34D399', hex: '#10B981' },
+  entrepreneur: { bg: '#F59E0B', border: '#FBBF24', line: '#FBBF24', hex: '#F59E0B' },
+  developer:    { bg: '#3B82F6', border: '#60A5FA', line: '#60A5FA', hex: '#3B82F6' },
+  designer:     { bg: '#DB2777', border: '#F472B6', line: '#F472B6', hex: '#DB2777' },
+  writer:       { bg: '#7C3AED', border: '#A78BFA', line: '#A78BFA', hex: '#7C3AED' },
+  researcher:   { bg: '#0D9488', border: '#2DD4BF', line: '#2DD4BF', hex: '#0D9488' },
+};
+
+const state = {
+  trees: [],              // [{ id, rootWord, nodes: Map, originX, originY }]
+  selectedNodeId: null,   // currently focused node
+  selectedTreeId: null,   // which tree it belongs to
+  lastExpandedNodeId: null, // for space-key focus fallback
+  lastExpandedTreeId: null,
+  resonanceLines: [],     // [{ fromNodeId, fromTreeId, toNodeId, toTreeId }]
+  panX: 0, panY: 0,
+  scale: 1,
+  bookmarks: [],          // [{ word, nodeId, treeId, note }]
+  model: 'deepseek',
+  identity: 'student',
+  recentWords: [],        // [{ word, treeId, nodeId }] last 3 replaced
+  hasStarted: false,
+  // Drag state
+  dragging: null,         // { nodeId, treeId, startX, startY, offsetX, offsetY, el, origParentId, origSiblings }
+  drawingResonance: null, // { fromNodeId, fromTreeId, toX, toY }
+  panning: false,
+  velX: 0, velY: 0,
+  lastX: 0, lastY: 0,
+};
+
+// Node repulsion physics
+const REPULSION_RADIUS = 160;
+const REPULSION_FORCE = 2.5;
+const REPULSION_DAMPING = 0.88;
+const REPULSION_MIN_VEL = 0.08;
+let repulsionRAF = null;
+
+// ============================================================================
+// DOM REFS
+// ============================================================================
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+const canvasStage = $('#canvasStage');
+const canvasWorld = $('#canvasWorld');
+const connSvg = $('#connSvg');
+const nodeLayer = $('#nodeLayer');
+const dialogOverlay = $('#dialogOverlay');
+const seedTextarea = $('#seedTextarea');
+const dialogSend = $('#dialogSend');
+const dockBar = $('#dockBar');
+const dockInput = $('#dockInput');
+const dockModelBadge = $('#dockModelBadge');
+const diceBtn = $('#diceBtn');
+const folderBtn = $('#folderBtn');
+const folderPanel = $('#folderPanel');
+const folderList = $('#folderList');
+const toast = $('#toast');
+const modelTrigger = $('#modelTrigger');
+const modelLabel = $('#modelLabel');
+const modelDropdown = $('#modelDropdown');
+const dockModelMenu = $('#dockModelMenu');
+const dockModelWrap = $('#dockModelWrap');
+
+// ============================================================================
+// GSAP FALLBACK — graceful degradation when CDN is blocked
+// ============================================================================
+// Check GSAP availability at call time (loaded async, may arrive after init)
+function hasGSAP() { return typeof gsap !== 'undefined'; }
+
+function animFadeIn(el, delay, duration) {
+  if (hasGSAP()) {
+    gsap.fromTo(el,
+      { opacity: 0, scale: 0.8 },
+      { opacity: 1, scale: 1, duration: duration || 0.28, delay: delay || 0, ease: 'power3.out' }
+    );
+  } else {
+    el.style.opacity = '1';
+    el.style.transform = 'scale(1)';
+  }
+}
+
+function animPanTo(targetPanX, targetPanY, onUpdate) {
+  if (hasGSAP()) {
+    gsap.to(state, {
+      panX: targetPanX, panY: targetPanY,
+      duration: 0.3, ease: 'power3.out',
+      onUpdate
+    });
+  } else {
+    state.panX = targetPanX;
+    state.panY = targetPanY;
+    if (onUpdate) onUpdate();
+  }
+}
+
+function animDialogToDock(onComplete) {
+  if (hasGSAP()) {
+    const tl = gsap.timeline();
+    tl.to('#dialogCard', {
+      y: -8, scale: 0.96, opacity: 0.6,
+      duration: 0.2, ease: 'power2.out'
+    })
+    .to('#dialogCard', {
+      y: 28, scale: 0.92, opacity: 0,
+      duration: 0.32, ease: 'power3.in'
+    }, '-=0.06')
+    .to('#dockBar', {
+      y: 0, opacity: 1,
+      duration: 0.6, ease: 'power3.out',
+      onStart: () => {
+        dockBar.classList.add('visible');
+        dialogOverlay.classList.add('docked');
+      },
+      onComplete
+    }, '-=0.18');
+  } else {
+    // Smooth CSS fallback — no GSAP dependency
+    const card = document.getElementById('dialogCard');
+    if (card) {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(28px) scale(0.92)';
+      card.style.pointerEvents = 'none';
+    }
+    dialogOverlay.classList.add('docked');
+    dockBar.classList.add('visible');
+    // Delay onComplete to let CSS transition finish
+    if (onComplete) setTimeout(onComplete, 350);
+  }
+}
+
+function animBounce(el) {
+  if (hasGSAP() && el) {
+    gsap.fromTo(el, { scale: 1 }, { scale: 1.2, duration: 0.18, ease: 'power3.out', yoyo: true, repeat: 1 });
+  }
+}
+
+// ============================================================================
+// TOAST
+// ============================================================================
+let toastTimer = null;
+function showToast(msg) {
+  if (toastTimer) clearTimeout(toastTimer);
+  toast.textContent = msg;
+  toast.classList.add('show');
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ============================================================================
+// NODE HELPERS
+// ============================================================================
+function findNode(treeId, nodeId) {
+  const tree = state.trees.find(t => t.id === treeId);
+  if (!tree) return null;
+  return tree.nodes.get(nodeId) || null;
+}
+
+function findTreeNode(nodeId) {
+  for (const tree of state.trees) {
+    if (tree.nodes.has(nodeId)) return { tree, node: tree.nodes.get(nodeId) };
+  }
+  return null;
+}
+
+function getNodeStateClass(node) {
+  if (state.selectedNodeId === node.id) return 'selected';
+  if (node.visited) return 'visited';
+  return 'unvisited';
+}
+
+function isBookmarked(nodeId) {
+  return state.bookmarks.some(b => b.nodeId === nodeId);
+}
+
+// ============================================================================
+// TREE LAYOUT
+// ============================================================================
+function getTreeOrigin(treeIndex) {
+  const rect = canvasStage.getBoundingClientRect();
+  const spacing = 450;
+  const startX = rect.width * 0.12;
+  const startY = rect.height * 0.45;
+  return {
+    x: startX + treeIndex * spacing,
+    y: startY + (treeIndex % 3) * 80,
+  };
+}
+
+function createTree(word) {
+  const treeIndex = state.trees.length;
+  const origin = getTreeOrigin(treeIndex);
+
+  // If there are existing trees, find position that doesn't overlap
+  if (treeIndex > 0) {
+    const lastTree = state.trees[treeIndex - 1];
+    const lastBounds = computeTreeBounds(lastTree);
+    origin.x = Math.max(origin.x, lastBounds.maxX + 350);
+    origin.y = Math.max(origin.y, lastBounds.maxY - 200);
+  }
+
+  const tree = {
+    id: 't' + uid(),
+    rootWord: word,
+    nodes: new Map(),
+    originX: origin.x,
+    originY: origin.y,
+    identity: state.identity,
+  };
+
+  const rootNode = {
+    id: uid(),
+    word: word,
+    x: origin.x,
+    y: origin.y,
+    vx: 0, vy: 0,
+    identity: state.identity,
+    parentId: null,
+    children: [],
+    visited: true,
+    expanded: false,
+    sideBranch: false,
+    depth: 0,
+  };
+
+  tree.nodes.set(rootNode.id, rootNode);
+  state.trees.push(tree);
+  return { tree, rootNode };
+}
+
+function expandNode(treeId, nodeId) {
+  const tree = state.trees.find(t => t.id === treeId);
+  if (!tree) return [];
+  const node = tree.nodes.get(nodeId);
+  if (!node || node.expanded) return [];
+
+  const associations = getAssociations(node.word);
+  const children = [];
+
+  for (let i = 0; i < 5; i++) {
+    const childNode = {
+      id: uid(),
+      word: associations[i] || `方向${i + 1}`,
+      x: 0, y: 0,
+      vx: 0, vy: 0,
+      identity: state.identity,
+      parentId: nodeId,
+      children: [],
+      visited: false,
+      expanded: false,
+      sideBranch: false,
+      depth: node.depth + 1,
+    };
+    tree.nodes.set(childNode.id, childNode);
+    node.children.push(childNode.id);
+    children.push(childNode);
+  }
+
+  node.expanded = true;
+  layoutChildPositions(tree, node, children);
+  return children;
+}
+
+function layoutChildPositions(tree, parent, children) {
+  const count = children.length;
+  const xBase = parent.x + 140 + Math.random() * 60;
+  const ySpread = 45;
+
+  // Use a seeded random based on parent id for consistent layout
+  const seed = hashStr(parent.id);
+  const rand = (n) => {
+    const x = Math.sin(seed + n * 127.1) * 43758.5453;
+    return x - Math.floor(x);
+  };
+
+  for (let i = 0; i < count; i++) {
+    const yOffset = (i - (count - 1) / 2) * (ySpread * 2);
+    const yJitter = (rand(i) - 0.5) * 80;
+    children[i].x = xBase;
+    children[i].y = parent.y + yOffset + yJitter;
+  }
+}
+
+function hashStr(s) {
+  let hash = 0;
+  for (let i = 0; i < s.length; i++) {
+    hash = ((hash << 5) - hash) + s.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function computeTreeBounds(tree) {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  tree.nodes.forEach(n => {
+    minX = Math.min(minX, n.x - 80);
+    minY = Math.min(minY, n.y - 30);
+    maxX = Math.max(maxX, n.x + 80);
+    maxY = Math.max(maxY, n.y + 30);
+  });
+  return { minX, minY, maxX, maxY, w: maxX - minX + 60, h: maxY - minY + 60 };
+}
+
+// ============================================================================
+// RENDERING
+// ============================================================================
+function renderAll() {
+  renderConnections();
+  renderNodes();
+  updateDiceBtn();
+}
+
+// ============================================================================
+// NODE REPULSION PHYSICS (same-pole magnet with inertia)
+// ============================================================================
+function startRepulsion() {
+  if (repulsionRAF) cancelAnimationFrame(repulsionRAF);
+  repulsionRAF = requestAnimationFrame(repulsionTick);
+}
+
+function repulsionTick() {
+  let anyMoving = false;
+
+  // Collect all nodes from all trees
+  const allNodes = [];
+  state.trees.forEach(tree => {
+    tree.nodes.forEach(node => {
+      allNodes.push(node);
+    });
+  });
+
+  // Skip dragged node
+  const draggedId = state.dragging ? state.dragging.nodeId : null;
+
+  // Calculate repulsion forces between all node pairs
+  for (let i = 0; i < allNodes.length; i++) {
+    const a = allNodes[i];
+    if (a.id === draggedId) continue;
+
+    for (let j = i + 1; j < allNodes.length; j++) {
+      const b = allNodes[j];
+      if (b.id === draggedId) continue;
+
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < REPULSION_RADIUS && dist > 0.01) {
+        // Force strength: inverse of distance, strongest when closest
+        const force = (1 - dist / REPULSION_RADIUS) * REPULSION_FORCE;
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        a.vx += nx * force;
+        a.vy += ny * force;
+        b.vx -= nx * force;
+        b.vy -= ny * force;
+      }
+    }
+  }
+
+  // Apply velocity, damping, and check if still moving
+  for (const node of allNodes) {
+    if (node.id === draggedId) {
+      node.vx = 0;
+      node.vy = 0;
+      continue;
+    }
+
+    node.vx *= REPULSION_DAMPING;
+    node.vy *= REPULSION_DAMPING;
+
+    node.x += node.vx;
+    node.y += node.vy;
+
+    if (Math.abs(node.vx) > REPULSION_MIN_VEL || Math.abs(node.vy) > REPULSION_MIN_VEL) {
+      anyMoving = true;
+    } else {
+      node.vx = 0;
+      node.vy = 0;
+    }
+  }
+
+  renderAll();
+
+  if (anyMoving) {
+    repulsionRAF = requestAnimationFrame(repulsionTick);
+  } else {
+    repulsionRAF = null;
+  }
+}
+
+
+function renderConnections() {
+  connSvg.innerHTML = '';
+  const svg = connSvg;
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', '100%');
+
+  state.trees.forEach(tree => {
+    tree.nodes.forEach(node => {
+      if (!node.parentId) return;
+      const parent = tree.nodes.get(node.parentId);
+      if (!parent) return;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const d = computeBezierPath(parent, node);
+      path.setAttribute('d', d);
+
+      if (node.visited || node.id === state.selectedNodeId) {
+        path.setAttribute('class', 'conn-path conn-visited');
+        const idc = IDENTITY_COLORS[tree.identity] || IDENTITY_COLORS.writer;
+        path.style.stroke = idc.line;
+      } else {
+        path.setAttribute('class', 'conn-path conn-unvisited');
+      }
+      svg.appendChild(path);
+    });
+  });
+
+  // Resonance lines
+  state.resonanceLines.forEach(rl => {
+    const from = findTreeNode(rl.fromNodeId);
+    const to = findTreeNode(rl.toNodeId);
+    if (!from || !to) return;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const d = computeBezierPath(from.node, to.node);
+    path.setAttribute('d', d);
+    path.setAttribute('class', 'conn-path conn-resonance');
+    svg.appendChild(path);
+  });
+
+  // Drawing resonance preview
+  if (state.drawingResonance) {
+    const dr = state.drawingResonance;
+    const from = findTreeNode(dr.fromNodeId);
+    if (from) {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const sx = from.node.x + 70, sy = from.node.y;
+      const ex = dr.toX, ey = dr.toY;
+      const cx1 = sx + Math.abs(ex - sx) * 0.4;
+      const cy1 = sy;
+      const cx2 = ex - Math.abs(ex - sx) * 0.4;
+      const cy2 = ey;
+      const d = `M${sx},${sy} C${cx1},${cy1} ${cx2},${cy2} ${ex},${ey}`;
+      path.setAttribute('d', d);
+      path.setAttribute('class', 'conn-path conn-resonance');
+      path.setAttribute('opacity', '0.5');
+      svg.appendChild(path);
+    }
+  }
+}
+
+function computeBezierPath(from, to) {
+  const sx = from.x + 60; // right edge of from node
+  const sy = from.y;
+  const ex = to.x - 60;   // left edge of to node
+  const ey = to.y;
+
+  const dx = Math.abs(ex - sx);
+  const cpOffset = dx * 0.35;
+  // Slight organic perturbation
+  const seed = hashStr(from.id + to.id);
+  const perturb = (n) => (Math.sin(seed + n * 73.7) * 3);
+
+  const cx1 = sx + cpOffset + perturb(1);
+  const cy1 = sy + perturb(2);
+  const cx2 = ex - cpOffset + perturb(3);
+  const cy2 = ey + perturb(4);
+
+  return `M${sx},${sy} C${cx1},${cy1} ${cx2},${cy2} ${ex},${ey}`;
+}
+
+function renderNodes() {
+  nodeLayer.innerHTML = '';
+
+  state.trees.forEach(tree => {
+    tree.nodes.forEach(node => {
+      const el = createNodeElement(node, tree.id);
+      nodeLayer.appendChild(el);
+    });
+  });
+}
+
+function createNodeElement(node, treeId) {
+  const el = document.createElement('div');
+  const stateClass = getNodeStateClass(node);
+  el.className = `node ${stateClass}`;
+  if (node.sideBranch) el.classList.add('side-branch');
+  if (isBookmarked(node.id)) el.classList.add('bookmarked');
+  el.setAttribute('data-node-id', node.id);
+  el.setAttribute('data-tree-id', treeId);
+  el.setAttribute('role', 'button');
+  el.setAttribute('tabindex', '0');
+  el.setAttribute('aria-label', node.word);
+
+  el.style.left = node.x + 'px';
+  el.style.top = node.y + 'px';
+
+  // Identity colors — use node's own identity, fallback to tree identity
+  const nodeIdentity = node.identity || (state.trees.find(t => t.id === treeId)?.identity);
+  const idc = IDENTITY_COLORS[nodeIdentity] || IDENTITY_COLORS.writer;
+
+  if (stateClass === 'selected') {
+    el.style.background = idc.bg;
+    el.style.border = `1.5px solid ${idc.border}`;
+    el.style.color = '#FFFFFF';
+  } else if (stateClass === 'visited') {
+    el.style.background = idc.bg;
+    el.style.border = 'none';
+    el.style.color = '#FFFFFF';
+  } else if (stateClass === 'unvisited') {
+    el.style.background = idc.bg + '55';
+    el.style.border = `1.5px solid ${idc.border}`;
+    el.style.color = idc.border;
+  }
+
+  // Model badge (tiny icon top-left) — use identity color
+  if (node.depth <= 1) {
+    const badge = document.createElement('span');
+    badge.className = 'model-badge';
+    badge.style.background = idc.hex;
+    el.appendChild(badge);
+  }
+
+  // Word
+  const wordSpan = document.createElement('span');
+  wordSpan.textContent = node.word;
+  el.appendChild(wordSpan);
+
+  // Bookmark button
+  const bmBtn = document.createElement('button');
+  bmBtn.className = 'bm-btn';
+  bmBtn.innerHTML = '&#9733;';
+  bmBtn.setAttribute('aria-label', t('bookmark'));
+  bmBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleBookmark(node, treeId);
+  });
+  el.appendChild(bmBtn);
+
+  // Click — select + focus only
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('.bm-btn')) return;
+    onNodeSelect(node, treeId);
+  });
+
+  // Double-click — expand/spread
+  el.addEventListener('dblclick', (e) => {
+    if (e.target.closest('.bm-btn')) return;
+    // 取消第2次mousedown触发的拖拽状态，避免onNodeExpand中被拦截
+    if (state.dragging) {
+      state.dragging = null;
+      canvasStage.classList.remove('dragging-node');
+    }
+    onNodeExpand(node, treeId);
+  });
+
+  // Drag start (for both reposition and resonance)
+  el.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.bm-btn')) return;
+    if (e.button !== 0) return;
+    if (e.shiftKey) {
+      // Start resonance drawing
+      e.preventDefault();
+      e.stopPropagation();
+      startResonanceDraw(node, treeId, e);
+    } else {
+      // Start drag-to-reposition
+      startNodeDrag(node, treeId, el, e);
+    }
+  });
+
+  el.addEventListener('touchstart', (e) => {
+    if (e.target.closest('.bm-btn')) return;
+    if (e.touches.length === 1) {
+      startNodeDrag(node, treeId, el, e.touches[0]);
+    }
+  }, { passive: false });
+
+  return el;
+}
+
+// ============================================================================
+// NODE INTERACTIONS
+// ============================================================================
+function onNodeSelect(node, treeId) {
+  if (state.dragging) return;
+  deselectCurrent();
+  state.selectedNodeId = node.id;
+  state.selectedTreeId = treeId;
+  state.lastExpandedNodeId = node.id;
+  state.lastExpandedTreeId = treeId;
+  updateDiceBtn();
+  updateReportBtnState();
+  renderAll();
+  focusNodeView(node);
+}
+
+function onNodeExpand(node, treeId) {
+  if (state.dragging) return;
+  if (!node.visited) {
+    node.visited = true;
+  }
+  deselectCurrent();
+  state.selectedNodeId = node.id;
+  state.selectedTreeId = treeId;
+  state.lastExpandedNodeId = node.id;
+  state.lastExpandedTreeId = treeId;
+
+  if (!node.expanded) {
+    const children = expandNode(treeId, node.id);
+    addRecentWord(node.word, treeId, node.id);
+    updateDiceBtn();
+    updateReportBtnState();
+    renderAll();
+    requestAnimationFrame(() => { animateChildrenIn(children); startRepulsion(); });
+  } else {
+    const tree = state.trees.find(t => t.id === treeId);
+    if (tree) {
+      node.children.forEach(cid => {
+        const child = tree.nodes.get(cid);
+        if (child) child.sideBranch = false;
+      });
+    }
+    updateDiceBtn();
+    updateReportBtnState();
+    renderAll();
+  }
+  focusNodeView(node);
+}
+
+function deselectCurrent() {
+  if (state.selectedNodeId && state.selectedTreeId) {
+    const prev = findNode(state.selectedTreeId, state.selectedNodeId);
+    // Don't mark as side branch, just un-select
+  }
+  state.selectedNodeId = null;
+  state.selectedTreeId = null;
+  updateReportBtnState();
+}
+
+function animateChildrenIn(children) {
+  children.forEach((child, i) => {
+    const el = nodeLayer.querySelector(`[data-node-id="${child.id}"]`);
+    if (!el) return;
+    animFadeIn(el, i * 0.04, 0.28);
+    el.style.transform = `scale(${child.visited ? 1 : 0.85})`;
+  });
+}
+
+// ============================================================================
+// NODE DRAG (Axis Switching)
+// ============================================================================
+function startNodeDrag(node, treeId, el, e) {
+  const rect = canvasStage.getBoundingClientRect();
+  const worldX = (e.clientX - rect.left) / state.scale - state.panX;
+  const worldY = (e.clientY - rect.top) / state.scale - state.panY;
+
+  // Save original relationships
+  const tree = state.trees.find(t => t.id === treeId);
+  const origParentId = node.parentId;
+  const origSiblings = origParentId
+    ? (tree.nodes.get(origParentId)?.children.filter(cid => cid !== node.id) || [])
+    : [];
+
+  state.dragging = {
+    nodeId: node.id, treeId,
+    offsetX: worldX - node.x,
+    offsetY: worldY - node.y,
+    origParentId,
+    origSiblings,
+    el,
+  };
+
+  canvasStage.classList.add('dragging-node');
+
+  // Visual feedback: slight scale up
+  el.style.transition = 'transform 150ms cubic-bezier(0.16, 1, 0.3, 1)';
+  el.style.transform = 'translate(-50%, -50%) scale(1.15)';
+  el.style.zIndex = '20';
+}
+
+window.addEventListener('mousemove', (e) => {
+  if (!state.dragging && !state.drawingResonance) return;
+
+  const rect = canvasStage.getBoundingClientRect();
+  const worldX = (e.clientX - rect.left) / state.scale - state.panX;
+  const worldY = (e.clientY - rect.top) / state.scale - state.panY;
+
+  if (state.dragging) {
+    const d = state.dragging;
+    const node = findNode(d.treeId, d.nodeId);
+    if (node) {
+      const oldX = node.x, oldY = node.y;
+      node.x = worldX - d.offsetX;
+      node.y = worldY - d.offsetY;
+      moveSubtree(d.treeId, d.nodeId, node.x - oldX, node.y - oldY);
+      renderAll();
+    }
+  }
+
+  if (state.drawingResonance) {
+    state.drawingResonance.toX = worldX;
+    state.drawingResonance.toY = worldY;
+    renderConnections();
+  }
+});
+
+window.addEventListener('mouseup', (e) => {
+  if (state.dragging) {
+    finishNodeDrag();
+  }
+  if (state.drawingResonance) {
+    finishResonanceDraw(e);
+  }
+});
+
+function moveSubtree(treeId, nodeId, dx, dy) {
+  const tree = state.trees.find(t => t.id === treeId);
+  if (!tree) return;
+  const node = tree.nodes.get(nodeId);
+  if (!node) return;
+  node.children.forEach(cid => {
+    const child = tree.nodes.get(cid);
+    if (child) {
+      child.x += dx;
+      child.y += dy;
+      moveSubtree(treeId, cid, dx, dy);
+    }
+  });
+}
+
+function finishNodeDrag() {
+  const d = state.dragging;
+  if (!d) return;
+
+  const tree = state.trees.find(t => t.id === d.treeId);
+  const node = tree?.nodes.get(d.nodeId);
+  if (!node) { state.dragging = null; return; }
+
+  // Mark original parent's other children as side branches
+  if (d.origParentId) {
+    const parent = tree.nodes.get(d.origParentId);
+    if (parent) {
+      d.origSiblings.forEach(cid => {
+        const sib = tree.nodes.get(cid);
+        if (sib) sib.sideBranch = true;
+      });
+      if (parent.parentId === null) {
+        parent.sideBranch = true;
+      }
+    }
+  }
+
+  node.sideBranch = false;
+  unsideBranchSubtree(tree, node.id);
+  node.visited = true;
+  state.selectedNodeId = node.id;
+  state.selectedTreeId = d.treeId;
+  addRecentWord(node.word, d.treeId, node.id);
+  state.dragging = null;
+  canvasStage.classList.remove('dragging-node');
+  updateDiceBtn();
+  updateReportBtnState();
+  renderAll();
+  startRepulsion();
+}
+
+function unsideBranchSubtree(tree, nodeId) {
+  const node = tree.nodes.get(nodeId);
+  if (!node) return;
+  node.sideBranch = false;
+  node.children.forEach(cid => unsideBranchSubtree(tree, cid));
+}
+
+// ============================================================================
+// RESONANCE DRAWING (Shift+drag to create cross-connections)
+// ============================================================================
+function startResonanceDraw(node, treeId, e) {
+  const rect = canvasStage.getBoundingClientRect();
+  const worldX = (e.clientX - rect.left) / state.scale - state.panX;
+  const worldY = (e.clientY - rect.top) / state.scale - state.panY;
+
+  state.drawingResonance = {
+    fromNodeId: node.id,
+    fromTreeId: treeId,
+    toX: worldX,
+    toY: worldY,
+  };
+  canvasStage.style.cursor = 'crosshair';
+}
+
+function finishResonanceDraw(e) {
+  if (!state.drawingResonance) return;
+
+  const dr = state.drawingResonance;
+  const rect = canvasStage.getBoundingClientRect();
+  const worldX = (e.clientX - rect.left) / state.scale - state.panX;
+  const worldY = (e.clientY - rect.top) / state.scale - state.panY;
+
+  // Find target node near drop point
+  let targetNode = null;
+  let targetTreeId = null;
+  for (const tree of state.trees) {
+    for (const [id, node] of tree.nodes) {
+      if (id === dr.fromNodeId && tree.id === dr.fromTreeId) continue;
+      const dist = Math.sqrt((node.x - worldX) ** 2 + (node.y - worldY) ** 2);
+      if (dist < 60) {
+        targetNode = node;
+        targetTreeId = tree.id;
+        break;
+      }
+    }
+  }
+
+  if (targetNode && targetTreeId) {
+    // Check if resonance already exists
+    const exists = state.resonanceLines.some(rl =>
+      (rl.fromNodeId === dr.fromNodeId && rl.toNodeId === targetNode.id) ||
+      (rl.fromNodeId === targetNode.id && rl.toNodeId === dr.fromNodeId)
+    );
+    if (!exists) {
+      state.resonanceLines.push({
+        fromNodeId: dr.fromNodeId,
+        fromTreeId: dr.fromTreeId,
+        toNodeId: targetNode.id,
+        toTreeId: targetTreeId,
+      });
+    }
+  }
+
+  state.drawingResonance = null;
+  canvasStage.style.cursor = 'grab';
+  renderAll();
+}
+
+// ============================================================================
+// BOOKMARKS
+// ============================================================================
+function toggleBookmark(node, treeId) {
+  const idx = state.bookmarks.findIndex(b => b.nodeId === node.id);
+  if (idx >= 0) {
+    state.bookmarks.splice(idx, 1);
+  } else {
+    state.bookmarks.push({ word: node.word, nodeId: node.id, treeId, note: '' });
+  }
+  renderAll();
+}
+
+// ============================================================================
+// RECENT WORDS (Folder Panel)
+// ============================================================================
+function addRecentWord(word, treeId, nodeId) {
+  // Remove if already exists
+  state.recentWords = state.recentWords.filter(r => r.nodeId !== nodeId);
+  state.recentWords.unshift({ word, treeId, nodeId });
+  // Keep last 3
+  state.recentWords = state.recentWords.slice(0, 3);
+  renderFolderPanel();
+}
+
+function renderFolderPanel() {
+  folderList.innerHTML = '';
+  if (state.recentWords.length === 0) {
+    folderList.innerHTML = '<div class="folder-empty" data-i18n="folder.empty">'+t('folder.empty')+'</div>';
+  } else {
+    state.recentWords.forEach((r, i) => {
+      const item = document.createElement('div');
+      item.className = 'folder-item';
+      item.textContent = r.word;
+      item.setAttribute('draggable', 'true');
+
+      item.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', JSON.stringify(r));
+        item.style.opacity = '0.5';
+      });
+      item.addEventListener('dragend', () => {
+        item.style.opacity = '1';
+      });
+
+      // Click to refocus
+      item.addEventListener('click', () => {
+        const found = findTreeNode(r.nodeId);
+        if (found) {
+          onNodeExpand(found.node, r.treeId);
+        }
+        folderPanel.classList.remove('open');
+      });
+
+      folderList.appendChild(item);
+    });
+  }
+}
+
+folderBtn.addEventListener('click', () => {
+  folderPanel.classList.toggle('open');
+  renderFolderPanel();
+});
+
+// Close folder on outside click
+document.addEventListener('click', (e) => {
+  if (folderPanel.classList.contains('open') &&
+      !folderPanel.contains(e.target) &&
+      !folderBtn.contains(e.target)) {
+    folderPanel.classList.remove('open');
+  }
+});
+
+// ============================================================================
+// DICE BUTTON
+// ============================================================================
+function updateDiceBtn() {
+  if (state.selectedNodeId) {
+    diceBtn.classList.remove('hidden');
+  } else {
+    diceBtn.classList.add('hidden');
+  }
+}
+
+diceBtn.addEventListener('click', () => {
+  if (!state.selectedNodeId || !state.selectedTreeId) return;
+  const node = findNode(state.selectedTreeId, state.selectedNodeId);
+  if (!node) return;
+
+  // Replace current node's word with a random association
+  const associations = getAssociations(node.word);
+  const randomWord = associations[Math.floor(Math.random() * associations.length)];
+
+  // Save current word to recent
+  addRecentWord(node.word, state.selectedTreeId, node.id);
+
+  // Replace word
+  const oldWord = node.word;
+  node.word = randomWord;
+
+  // Collapse and re-expand with new word
+  collapseChildren(state.selectedTreeId, node.id);
+  node.expanded = false;
+  node.visited = true;
+  expandNode(state.selectedTreeId, node.id);
+
+  renderAll();
+  showToast(`${oldWord} → ${randomWord}`);
+});
+
+function collapseChildren(treeId, nodeId) {
+  const tree = state.trees.find(t => t.id === treeId);
+  if (!tree) return;
+  const node = tree.nodes.get(nodeId);
+  if (!node) return;
+  node.children.forEach(cid => {
+    collapseChildren(treeId, cid);
+    tree.nodes.delete(cid);
+  });
+  node.children = [];
+  node.expanded = false;
+}
+
+// ============================================================================
+// VIEWPORT (Pan, Zoom, Focus)
+// ============================================================================
+function applyViewport() {
+  canvasWorld.style.transform = `translate(${state.panX * state.scale}px, ${state.panY * state.scale}px) scale(${state.scale})`;
+}
+
+function focusNodeView(node) {
+  const rect = canvasStage.getBoundingClientRect();
+  const targetPanX = rect.width / 2 - node.x * state.scale;
+  const targetPanY = rect.height / 2 - node.y * state.scale;
+
+  animPanTo(targetPanX, targetPanY, () => {
+    applyViewport();
+    renderAll();
+  });
+}
+
+function resetViewport() {
+  if (inertiaRAF) { cancelAnimationFrame(inertiaRAF); inertiaRAF = null; }
+  state.velX = 0; state.velY = 0;
+  state.scale = 1;
+
+  animPanTo(0, 0, () => {
+    applyViewport();
+    renderAll();
+  });
+}
+
+// Panning
+let inertiaRAF = null;
+
+function applyInertia() {
+  state.panX += state.velX;
+  state.panY += state.velY;
+  state.velX *= 0.92;
+  state.velY *= 0.92;
+  if (Math.abs(state.velX) < 0.05 && Math.abs(state.velY) < 0.05) {
+    state.velX = 0; state.velY = 0;
+    cancelAnimationFrame(inertiaRAF);
+    inertiaRAF = null;
+    applyViewport();
+    renderAll();
+    return;
+  }
+  applyViewport();
+  renderAll();
+  inertiaRAF = requestAnimationFrame(applyInertia);
+}
+
+canvasStage.addEventListener('mousedown', (e) => {
+  if (state.dragging || state.drawingResonance) return;
+  if (e.target === canvasStage ||
+      e.target.id === 'canvasWorld' || e.target.id === 'nodeLayer' ||
+      e.target.closest('#connSvg')) {
+    state.panning = true;
+    state.lastX = e.clientX; state.lastY = e.clientY;
+    state.velX = 0; state.velY = 0;
+    if (inertiaRAF) { cancelAnimationFrame(inertiaRAF); inertiaRAF = null; }
+    canvasStage.classList.add('dragging-canvas');
+  }
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (state.dragging || state.drawingResonance) return;
+  if (!state.panning) return;
+  state.velX = (e.clientX - state.lastX) / state.scale;
+  state.velY = (e.clientY - state.lastY) / state.scale;
+  state.panX += state.velX;
+  state.panY += state.velY;
+  state.lastX = e.clientX; state.lastY = e.clientY;
+  applyViewport();
+  renderAll();
+});
+
+window.addEventListener('mouseup', () => {
+  if (state.panning) {
+    state.panning = false;
+    canvasStage.classList.remove('dragging-canvas');
+    if (Math.abs(state.velX) > 0.2 || Math.abs(state.velY) > 0.2) {
+      inertiaRAF = requestAnimationFrame(applyInertia);
+    }
+  }
+});
+
+// Touch pan + pinch zoom
+let pinching = false, lastPinchDist = 0, pinchCX = 0, pinchCY = 0;
+
+canvasStage.addEventListener('touchstart', (e) => {
+  if (e.touches.length === 2) {
+    pinching = true;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    lastPinchDist = Math.sqrt(dx * dx + dy * dy);
+    pinchCX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    pinchCY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    return;
+  }
+  if (e.target === canvasStage ||
+      e.target.id === 'canvasWorld' || e.target.id === 'nodeLayer' ||
+      e.target.closest('#connSvg')) {
+    state.panning = true;
+    state.lastX = e.touches[0].clientX; state.lastY = e.touches[0].clientY;
+    state.velX = 0; state.velY = 0;
+    if (inertiaRAF) { cancelAnimationFrame(inertiaRAF); inertiaRAF = null; }
+  }
+}, { passive: false });
+
+canvasStage.addEventListener('touchmove', (e) => {
+  if (pinching && e.touches.length === 2) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (lastPinchDist > 0) {
+      const rect = canvasStage.getBoundingClientRect();
+      const mx = pinchCX - rect.left;
+      const my = pinchCY - rect.top;
+      const oldScale = state.scale;
+      state.scale = Math.min(3, Math.max(0.3, state.scale * (dist / lastPinchDist)));
+      state.panX = (mx / state.scale) - (mx / oldScale) + (state.panX * oldScale / state.scale);
+      state.panY = (my / state.scale) - (my / oldScale) + (state.panY * oldScale / state.scale);
+      applyViewport();
+      renderAll();
+    }
+    lastPinchDist = dist;
+    return;
+  }
+  if (!state.panning) return;
+  state.velX = e.touches[0].clientX - state.lastX;
+  state.velY = e.touches[0].clientY - state.lastY;
+  state.panX += state.velX / state.scale;
+  state.panY += state.velY / state.scale;
+  state.lastX = e.touches[0].clientX; state.lastY = e.touches[0].clientY;
+  applyViewport();
+  renderAll();
+}, { passive: false });
+
+canvasStage.addEventListener('touchend', () => {
+  if (pinching) { pinching = false; lastPinchDist = 0; return; }
+  state.panning = false;
+  if (Math.abs(state.velX) > 0.2 || Math.abs(state.velY) > 0.2) {
+    inertiaRAF = requestAnimationFrame(applyInertia);
+  }
+});
+
+// Wheel zoom
+canvasStage.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  if (e.ctrlKey || e.metaKey) {
+    const rect = canvasStage.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const oldScale = state.scale;
+    const delta = -e.deltaY * 0.005;
+    state.scale = Math.min(3, Math.max(0.3, state.scale + delta));
+    state.panX = (mx / state.scale) - (mx / oldScale) + (state.panX * oldScale / state.scale);
+    state.panY = (my / state.scale) - (my / oldScale) + (state.panY * oldScale / state.scale);
+    applyViewport();
+    renderAll();
+  } else {
+    state.panX -= e.deltaX / state.scale;
+    state.panY -= e.deltaY / state.scale;
+    state.velX = -e.deltaX * 0.15 / state.scale;
+    state.velY = -e.deltaY * 0.15 / state.scale;
+    applyViewport();
+    renderAll();
+    if (inertiaRAF) cancelAnimationFrame(inertiaRAF);
+    inertiaRAF = requestAnimationFrame(applyInertia);
+  }
+}, { passive: false });
+
+// Double-click empty → reset viewport
+canvasStage.addEventListener('dblclick', (e) => {
+  if (e.target.closest('.node')) return;
+  resetViewport();
+});
+
+// Drag folder items onto canvas to create nodes
+canvasStage.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+});
+canvasStage.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const raw = e.dataTransfer.getData('text/plain');
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    const rect = canvasStage.getBoundingClientRect();
+    const worldX = (e.clientX - rect.left) / state.scale - state.panX;
+    const worldY = (e.clientY - rect.top) / state.scale - state.panY;
+
+    // Check if dropped near existing node
+    let found = null;
+    for (const tree of state.trees) {
+      for (const [id, node] of tree.nodes) {
+        const dist = Math.sqrt((node.x - worldX) ** 2 + (node.y - worldY) ** 2);
+        if (dist < 40) { found = { tree, node }; break; }
+      }
+      if (found) break;
+    }
+
+    if (found) {
+      onNodeExpand(found.node, found.tree.id);
+    } else {
+      // Create as new tree at drop position
+      const treeIndex = state.trees.length;
+      const tree = {
+        id: 't' + uid(),
+        rootWord: data.word,
+        nodes: new Map(),
+        originX: worldX,
+        originY: worldY,
+        identity: state.identity,
+      };
+      const rootNode = {
+        id: uid(),
+        word: data.word,
+        x: worldX, y: worldY,
+        vx: 0, vy: 0,
+        identity: state.identity,
+        parentId: null,
+        children: [],
+        visited: true, expanded: false,
+        sideBranch: false, depth: 0,
+      };
+      tree.nodes.set(rootNode.id, rootNode);
+      state.trees.push(tree);
+      deselectCurrent();
+      state.selectedNodeId = rootNode.id;
+      state.selectedTreeId = tree.id;
+      state.lastExpandedNodeId = rootNode.id;
+      state.lastExpandedTreeId = tree.id;
+      addRecentWord(data.word, tree.id, rootNode.id);
+      updateDiceBtn();
+      updateReportBtnState();
+      renderAll();
+      focusNodeView(rootNode);
+      startRepulsion();
+    }
+
+    folderPanel.classList.remove('open');
+  } catch (_) {}
+});
+
+// ============================================================================
+// EMPTY CURSOR
+// ============================================================================
+
+// ============================================================================
+// KEYBOARD NAVIGATION
+// ============================================================================
+document.addEventListener('keydown', (e) => {
+  // Ignore if typing
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+
+  const allNodes = getAllNodeRefs();
+
+  if (e.key === ' ') {
+    e.preventDefault();
+    // Space → focus selected or latest expanded node
+    if (state.selectedNodeId && state.selectedTreeId) {
+      const node = findNode(state.selectedTreeId, state.selectedNodeId);
+      if (node) focusNodeView(node);
+    } else if (state.lastExpandedNodeId && state.lastExpandedTreeId) {
+      const node = findNode(state.lastExpandedTreeId, state.lastExpandedNodeId);
+      if (node) focusNodeView(node);
+    }
+    return;
+  }
+
+  if (e.key === 'Escape') {
+    if (folderPanel.classList.contains('open')) {
+      folderPanel.classList.remove('open');
+      return;
+    }
+    deselectCurrent();
+    updateDiceBtn();
+    renderAll();
+    return;
+  }
+
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    if (allNodes.length === 0) return;
+    const focused = document.activeElement;
+    const focusedIdx = allNodes.findIndex(n => n.el === focused);
+    let nextIdx;
+    if (e.shiftKey) {
+      nextIdx = focusedIdx <= 0 ? allNodes.length - 1 : focusedIdx - 1;
+    } else {
+      nextIdx = focusedIdx < 0 ? 0 : (focusedIdx + 1) % allNodes.length;
+    }
+    if (allNodes[nextIdx]) allNodes[nextIdx].el.focus();
+    return;
+  }
+
+  if (e.key === 'Enter') {
+    const focused = document.activeElement?.closest('.node');
+    if (focused) {
+      const nodeId = focused.dataset.nodeId;
+      const treeId = focused.dataset.treeId;
+      const tree = state.trees.find(t => t.id === treeId);
+      const node = tree?.nodes.get(nodeId);
+      if (node) onNodeExpand(node, treeId);
+    }
+    return;
+  }
+
+  // Arrow keys for sibling navigation
+  if (['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+    const focused = document.activeElement?.closest('.node');
+    if (!focused) return;
+    const nodeId = focused.dataset.nodeId;
+    const treeId = focused.dataset.treeId;
+    const tree = state.trees.find(t => t.id === treeId);
+    const node = tree?.nodes.get(nodeId);
+    if (!node || !node.parentId) return;
+    const parent = tree.nodes.get(node.parentId);
+    if (!parent) return;
+    const siblings = parent.children.map(cid => tree.nodes.get(cid)).filter(Boolean);
+    const idx = siblings.findIndex(s => s.id === nodeId);
+    if (idx < 0) return;
+    e.preventDefault();
+    const forward = e.key === 'ArrowRight' || e.key === 'ArrowDown';
+    const next = forward
+      ? (idx + 1) % siblings.length
+      : (idx - 1 + siblings.length) % siblings.length;
+    const nextEl = nodeLayer.querySelector(`[data-node-id="${siblings[next].id}"]`);
+    if (nextEl) nextEl.focus();
+  }
+});
+
+function getAllNodeRefs() {
+  const refs = [];
+  state.trees.forEach(tree => {
+    tree.nodes.forEach(node => {
+      const el = nodeLayer.querySelector(`[data-node-id="${node.id}"]`);
+      if (el) refs.push({ node, el });
+    });
+  });
+  return refs;
+}
+
+// ============================================================================
+// CORE: Start Exploration
+// ============================================================================
+function startExploration(word) {
+  word = word || seedTextarea.value.trim();
+  if (!word) { showToast(t('toast.enter_word')); seedTextarea.focus(); return; }
+
+  const wasFirstTime = !state.hasStarted;
+  state.hasStarted = true;
+
+  const { tree, rootNode } = createTree(word);
+  state.selectedNodeId = rootNode.id;
+  state.selectedTreeId = tree.id;
+  state.lastExpandedNodeId = rootNode.id;
+  state.lastExpandedTreeId = tree.id;
+  addRecentWord(word, tree.id, rootNode.id);
+
+  if (wasFirstTime) {
+    animDialogToDock();
+  }
+
+  seedTextarea.value = word;
+  dockInput.value = word;
+  updateDiceBtn();
+  updateReportBtnState();
+  renderAll();
+  focusNodeView(rootNode);
+  startRepulsion();
+}
+
+// ============================================================================
+// DIALOG + DOCK EVENTS
+// ============================================================================
+// Dialog send — button is always clickable, validation happens in startExploration
+dialogSend.addEventListener('click', () => startExploration());
+seedTextarea.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+    e.preventDefault();
+    startExploration();
+  }
+});
+
+// Dock input — creates a NEW tree for each new word
+dockInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const word = dockInput.value.trim();
+    if (!word) { showToast(t('toast.enter_word')); return; }
+    startExploration(word);
+    dockInput.value = '';
+  }
+});
+
+// ============================================================================
+// MODEL DROPDOWN (dialog + dock)
+// ============================================================================
+modelTrigger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  dockModelMenu.classList.remove('open');
+  modelDropdown.classList.toggle('open');
+});
+// Dock model badge toggle
+dockModelBadge.addEventListener('click', (e) => {
+  e.stopPropagation();
+  modelDropdown.classList.remove('open');
+  dockModelMenu.classList.toggle('open');
+});
+// Handle model item clicks (both dialog and dock menus)
+document.querySelectorAll('.model-item, .dock-model-menu .model-item').forEach(item => {
+  item.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const model = item.dataset.model;
+    const label = item.textContent.trim();
+    // Update all model item selections
+    document.querySelectorAll('.model-item, .dock-model-menu .model-item').forEach(i => i.classList.remove('selected'));
+    // Select matching items in both menus
+    document.querySelectorAll(`.model-item[data-model="${model}"], .dock-model-menu .model-item[data-model="${model}"]`).forEach(i => i.classList.add('selected'));
+    state.model = model;
+    modelLabel.textContent = label;
+    // Update trigger dot
+    const dot = item.querySelector('.model-dot').cloneNode(true);
+    const existing = modelTrigger.querySelector('.model-dot');
+    if (existing) existing.replaceWith(dot);
+    modelDropdown.classList.remove('open');
+    dockModelMenu.classList.remove('open');
+    // Update dock badge text
+    const dockModelLabel = document.getElementById('dockModelLabel');
+    if (dockModelLabel) dockModelLabel.textContent = label;
+  });
+});
+document.addEventListener('click', () => {
+  modelDropdown.classList.remove('open');
+  dockModelMenu.classList.remove('open');
+});
+
+// ============================================================================
+// IDENTITY SELECTION
+// ============================================================================
+function syncIdentities() {
+  $$('#identityRow .identity-avatar').forEach(a =>
+    a.classList.toggle('selected', a.dataset.identity === state.identity));
+  $$('#dockAvatars .dock-avatar').forEach(a =>
+    a.classList.toggle('selected', a.dataset.identity === state.identity));
+}
+$$('#identityRow .identity-avatar, #dockAvatars .dock-avatar').forEach(avatar => {
+  avatar.addEventListener('click', () => {
+    state.identity = avatar.dataset.identity;
+    syncIdentities();
+    // Pure CSS bounce — no GSAP dependency
+    avatar.classList.add('clicked');
+    avatar.addEventListener('animationend', () => avatar.classList.remove('clicked'), { once: true });
+  });
+});
+
+// ============================================================================
+// INIT
+// ============================================================================
+applyViewport();
+seedTextarea.focus();
+
+// ============================================================================
+// CREDIT MANAGER
+// ============================================================================
+const CREDIT_CONFIG = {
+  STORAGE_KEY: 'synapse-credits',
+  HISTORY_KEY: 'synapse-credit-history',
+  INITIAL: 100,
+  REPORT_COST: 10,
+};
+
+function getCredits() {
+  try {
+    const v = localStorage.getItem(CREDIT_CONFIG.STORAGE_KEY);
+    if (v === null) {
+      setCredits(CREDIT_CONFIG.INITIAL);
+      return CREDIT_CONFIG.INITIAL;
+    }
+    const n = parseInt(v, 10);
+    return isNaN(n) || n < 0 ? CREDIT_CONFIG.INITIAL : n;
+  } catch {
+    return CREDIT_CONFIG.INITIAL;
+  }
+}
+
+function setCredits(n) {
+  try { localStorage.setItem(CREDIT_CONFIG.STORAGE_KEY, String(n)); } catch {}
+}
+
+function addCreditHistory(entry) {
+  try {
+    const raw = localStorage.getItem(CREDIT_CONFIG.HISTORY_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.unshift(entry);
+    if (arr.length > 50) arr.length = 50;
+    localStorage.setItem(CREDIT_CONFIG.HISTORY_KEY, JSON.stringify(arr));
+  } catch {}
+}
+
+function getCreditHistory() {
+  try {
+    const raw = localStorage.getItem(CREDIT_CONFIG.HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+function deductCredits(amount, reason) {
+  const current = getCredits();
+  if (current < amount) {
+    return { success: false, balance: current, reason: 'insufficient' };
+  }
+  const newBalance = current - amount;
+  setCredits(newBalance);
+  addCreditHistory({
+    time: new Date().toISOString(),
+    type: 'deduct',
+    amount: -amount,
+    balance: newBalance,
+    detail: reason,
+  });
+  return { success: true, balance: newBalance };
+}
+
+function formatCredits(n) { return String(n); }
+
+function updateCreditUI() {
+  const c = getCredits();
+  const el = document.getElementById('creditCount');
+  const badge = document.getElementById('creditBadge');
+  if (el) el.textContent = formatCredits(c);
+  if (badge) {
+    badge.classList.toggle('low', c < CREDIT_CONFIG.REPORT_COST);
+  }
+  updateReportBtnState();
+}
+
+function updateReportBtnState() {
+  const btn = document.getElementById('reportBtn');
+  if (!btn) return;
+  const hasSelection = !!(state.selectedNodeId && state.selectedTreeId);
+  const hasCredits = getCredits() >= CREDIT_CONFIG.REPORT_COST;
+  if (!hasSelection) {
+    btn.classList.add('disabled');
+  } else {
+    btn.classList.remove('disabled');
+  }
+}
+
+// ============================================================================
+// REPORT GENERATOR
+// ============================================================================
+function collectPathNodes() {
+  if (!state.selectedNodeId || !state.selectedTreeId) return [];
+  const tree = state.trees.find(t => t.id === state.selectedTreeId);
+  if (!tree) return [];
+  const path = [];
+  let nodeId = state.selectedNodeId;
+  while (nodeId) {
+    const node = tree.nodes.get(nodeId);
+    if (!node) break;
+    path.unshift({ word: node.word, depth: node.depth, identity: node.identity, visited: node.visited });
+    nodeId = node.parentId;
+  }
+  return path;
+}
+
+function getIdentityLabel(identity) {
+  const labels = {
+    student: t('identity.student'), entrepreneur: t('identity.entrepreneur'),
+    developer: t('identity.developer'), designer: t('identity.designer'),
+    writer: t('identity.writer'), researcher: t('identity.researcher'),
+  };
+  return labels[identity] || identity;
+}
+
+function analyzePathPattern(pathNodes) {
+  const words = pathNodes.map(n => n.word);
+  const patterns = [];
+  const categories = {
+    abstract: ['思维','哲学','意识','意义','存在','真理','逻辑','直觉','反思','灵感','创意','情感','未来','宇宙','认知','心理'],
+    concrete: ['设计','程序','代码','算法','数据','市场','产品','品牌','教育','健康','城市','美食','游戏','音乐','艺术'],
+    process: ['分析','学习','创业','探索','创造','改进','沉淀','成长','部署','测试','演化'],
+    emotion: ['快乐','悲伤','爱','愤怒','平静','灵感','表达'],
+    tech: ['科技','AI','机器学习','神经网络','深度学习','自然语言','计算机视觉','自动化','数据'],
+    business: ['创业','市场','品牌','营销','增长','产品','团队','资金','竞争'],
+  };
+
+  // Check if path moves from abstract to concrete
+  const firstCat = Object.entries(categories).find(([, ws]) => ws.includes(words[0]));
+  const lastCat = Object.entries(categories).find(([, ws]) => ws.includes(words[words.length - 1]));
+
+  if (firstCat && lastCat && firstCat[0] !== lastCat[0]) {
+    patterns.push({ type: 'transition', from: firstCat[0], to: lastCat[0] });
+  }
+
+  // Check for deepening (increasing specificity)
+  if (pathNodes.length >= 3) {
+    patterns.push({ type: 'deep_exploration', depth: pathNodes.length });
+  }
+
+  return { categories: { firstCat, lastCat }, patterns };
+}
+
+function generateSuggestions(pathNodes, bookmarks) {
+  const suggestions = [];
+  const rootWord = pathNodes[0]?.word;
+  const currentWord = pathNodes[pathNodes.length - 1]?.word;
+  const bookmarkWords = bookmarks.map(b => b.word);
+
+  // Suggestion 1: Based on root word
+  if (rootWord) {
+    const assoc = getAssociations(rootWord);
+    suggestions.push({
+      text: `围绕起始词「${rootWord}」可以继续探索的方向：${assoc.slice(0, 3).join('、')}。建议以这些方向为起点开启新的探索树。`,
+      priority: 'high',
+    });
+  }
+
+  // Suggestion 2: Based on bookmarks
+  if (bookmarkWords.length >= 2) {
+    suggestions.push({
+      text: `您收藏了 ${bookmarkWords.length} 个节点（${bookmarkWords.join('、')}），这些词之间存在潜在的交叉关联，建议尝试将它们进行共振连接（Shift+拖拽节点），可能会发现新的创意组合。`,
+      priority: 'medium',
+    });
+  }
+
+  // Suggestion 3: Based on path depth
+  if (pathNodes.length >= 4) {
+    suggestions.push({
+      text: `当前探索已达到 ${pathNodes.length} 层深度，建议回溯到中间节点「${pathNodes[Math.floor(pathNodes.length / 2)]?.word}」重新分叉，可能会有全新的发现路径。`,
+      priority: 'high',
+    });
+  } else {
+    suggestions.push({
+      text: `当前探索深度较浅，建议继续沿当前方向深入，或切换到不同身份视角重新审视「${rootWord || currentWord}」。`,
+      priority: 'medium',
+    });
+  }
+
+  // Suggestion 4: Based on the final word
+  if (currentWord && rootWord !== currentWord) {
+    const currAssoc = getAssociations(currentWord);
+    suggestions.push({
+      text: `从「${currentWord}」可以进一步发散到：${currAssoc.slice(0, 3).join('、')}。这些方向可能与您的原始问题「${rootWord}」产生有意义的交叉。`,
+      priority: 'medium',
+    });
+  }
+
+  // Suggestion 5: Cross-tree insight
+  if (state.trees.length > 1) {
+    const allRoots = state.trees.map(t => t.rootWord);
+    suggestions.push({
+      text: `您已创建 ${state.trees.length} 棵探索树（${allRoots.join('、')}），建议用共振连线连接不同树中的相关节点来发现跨领域洞察。`,
+      priority: 'low',
+    });
+  }
+
+  return suggestions;
+}
+
+function generateReport(pathNodes) {
+  const bookmarks = state.bookmarks;
+  const analysis = analyzePathPattern(pathNodes);
+  const suggestions = generateSuggestions(pathNodes, bookmarks);
+  const now = new Date();
+  const timeStr = now.toLocaleString(currentLang === 'en' ? 'en-US' : 'zh-CN');
+
+  const totalNodes = state.trees.reduce((sum, tree) => sum + tree.nodes.size, 0);
+  const maxDepth = pathNodes.length > 0 ? pathNodes[pathNodes.length - 1].depth : 0;
+
+  let html = '';
+
+  // Header
+  html += `<p style="color:var(--fg-tertiary);font-size:12px;margin-bottom:20px;">${timeStr} &nbsp;|&nbsp; ${getIdentityLabel(state.identity)} &nbsp;|&nbsp; ${state.model}</p>`;
+
+  // Section 1: Path Review
+  html += `<h2>${t('report.section1')}</h2>`;
+  if (pathNodes.length > 0) {
+    html += `<p>${t('report.pathLabel')}：`;
+    pathNodes.forEach((n, i) => {
+      html += `<span class="path-tag">${n.word}</span>`;
+      if (i < pathNodes.length - 1) html += ' <span style="color:var(--synaptic-purple);">→</span> ';
+    });
+    html += `</p>`;
+    html += `<p>${t('report.rootWord')}：<strong>${pathNodes[0]?.word}</strong>，${t('report.currentWord')}：<strong>${pathNodes[pathNodes.length - 1]?.word}</strong></p>`;
+    html += `<p>从 <strong>${pathNodes[0]?.word}</strong> 出发，经过 ${pathNodes.length - 1} 步探索到达 <strong>${pathNodes[pathNodes.length - 1]?.word}</strong>。`;
+    if (analysis.categories.firstCat && analysis.categories.lastCat && analysis.categories.firstCat[0] !== analysis.categories.lastCat[0]) {
+      html += `这一路径体现了从<strong>${analysis.categories.firstCat[0]}</strong>领域向<strong>${analysis.categories.lastCat[0]}</strong>领域的跨域思考。`;
+    }
+    html += `</p>`;
+  } else {
+    html += `<p>当前没有活跃的探索路径。选择一个节点以生成完整报告。</p>`;
+  }
+
+  // Section 2: Logical Analysis
+  html += `<h2>${t('report.section2')}</h2>`;
+
+  if (analysis.patterns.some(p => p.type === 'transition')) {
+    html += `<div class="insight-box purple"><p><strong>跨领域思维迁移</strong><br>您的探索从 ${analysis.categories.firstCat?.[0] || '初始'} 领域跨越到 ${analysis.categories.lastCat?.[0] || '新'} 领域，表现出跨界联想的思维特征。这种类型的思想跳跃常常是创新的源头。</p></div>`;
+  }
+
+  if (pathNodes.length >= 3) {
+    html += `<div class="insight-box green"><p><strong>深度探索模式</strong><br>您已连续深入 ${pathNodes.length} 层节点，展现出对当前主题的持续兴趣和探索深度。深度探索有助于发现隐藏在表面关联之下的非显而易见的连接。</p></div>`;
+  }
+
+  // Word relationship analysis
+  if (pathNodes.length >= 2) {
+    html += `<p>路径节点间的语义关系：</p><ul>`;
+    for (let i = 1; i < pathNodes.length; i++) {
+      const prev = pathNodes[i - 1];
+      const curr = pathNodes[i];
+      const prevAssoc = getAssociations(prev.word);
+      const isDirectAssoc = prevAssoc.includes(curr.word);
+      html += `<li><strong>${prev.word}</strong> → <strong>${curr.word}</strong>：${isDirectAssoc ? '直接语义关联' : '探索性关联'}，属于${getIdentityLabel(curr.identity || state.identity)}视角下的自然延伸。</li>`;
+    }
+    html += `</ul>`;
+  }
+
+  if (bookmarks.length > 0) {
+    const bmWords = bookmarks.map(b => b.word);
+    html += `<div class="insight-box pink"><p><strong>关键标记节点</strong><br>您标记了 ${bmWords.length} 个重要节点：${bmWords.join('、')}。这些节点可能代表对当前主题最有价值的思考方向，建议在下一次探索中重点关注这些节点的子节点。</p></div>`;
+  }
+
+  // Section 3: Suggestions
+  html += `<h2>${t('report.section3')}</h2>`;
+  suggestions.forEach((s, i) => {
+    const priorityColor = s.priority === 'high' ? 'green' : s.priority === 'medium' ? 'purple' : 'pink';
+    html += `<div class="insight-box ${priorityColor}"><p><strong>${t('report.suggestion')} ${i + 1}</strong><br>${s.text}</p></div>`;
+  });
+
+  // Section 4: Bookmarked Nodes
+  html += `<h2>${t('report.section4')}</h2>`;
+  if (bookmarks.length > 0) {
+    html += `<ul>`;
+    bookmarks.forEach(b => {
+      html += `<li><strong>${b.word}</strong>${b.note ? ' — ' + b.note : ''}</li>`;
+    });
+    html += `</ul>`;
+  } else {
+    html += `<p>暂无收藏节点。在探索过程中点击节点旁的星标即可收藏重要节点，它们将出现在此报告中。</p>`;
+  }
+
+  // Meta footer
+  html += `<div class="meta-bar">`;
+  html += `<span>${t('report.generatedAt')}：${timeStr}</span>`;
+  html += `<span>${t('report.identity')}：${getIdentityLabel(state.identity)}</span>`;
+  html += `<span>${t('report.depth')}：${maxDepth}</span>`;
+  html += `<span>${t('report.nodeCount')}：${totalNodes}</span>`;
+  html += `<span>${t('report.bookmarkCount')}：${bookmarks.length}</span>`;
+  html += `<span>${t('report.treeCount')}：${state.trees.length}</span>`;
+  html += `</div>`;
+
+  return html;
+}
+
+// ============================================================================
+// CREDIT & REPORT UI INTERACTIONS
+// ============================================================================
+const reportBtn = document.getElementById('reportBtn');
+const creditOverlay = document.getElementById('creditOverlay');
+const creditCancel = document.getElementById('creditCancel');
+const creditConfirm = document.getElementById('creditConfirm');
+const creditInsufficient = document.getElementById('creditInsufficient');
+const creditActions = document.getElementById('creditActions');
+const creditInsufficientRecharge = document.getElementById('creditInsufficientRecharge');
+const reportPanelOverlay = document.getElementById('reportPanelOverlay');
+const reportPanel = document.getElementById('reportPanel');
+const reportPanelBody = document.getElementById('reportPanelBody');
+const reportClose = document.getElementById('reportClose');
+const reportCopy = document.getElementById('reportCopy');
+const creditBadge = document.getElementById('creditBadge');
+const creditDetailPanel = document.getElementById('creditDetailPanel');
+
+let reportGenerating = false;
+
+// ── Open credit confirm dialog ──
+reportBtn.addEventListener('click', () => {
+  if (reportBtn.classList.contains('disabled') || reportBtn.classList.contains('generating')) return;
+  if (!state.selectedNodeId || !state.selectedTreeId) return;
+
+  const credits = getCredits();
+  const pathNodes = collectPathNodes();
+  const pathStr = pathNodes.map(n => n.word).join(' → ') || t('credit.path');
+
+  document.getElementById('creditConfirmBalance').textContent = formatCredits(credits);
+  document.getElementById('creditConfirmAfter').textContent = formatCredits(Math.max(0, credits - CREDIT_CONFIG.REPORT_COST));
+  document.getElementById('creditPathChain').textContent = pathStr;
+
+  if (credits < CREDIT_CONFIG.REPORT_COST) {
+    creditInsufficient.style.display = 'block';
+    creditActions.style.display = 'none';
+  } else {
+    creditInsufficient.style.display = 'none';
+    creditActions.style.display = 'flex';
+  }
+
+  creditOverlay.classList.add('open');
+});
+
+// ── Close credit overlay ──
+creditCancel.addEventListener('click', () => {
+  creditOverlay.classList.remove('open');
+});
+creditOverlay.addEventListener('click', (e) => {
+  if (e.target === creditOverlay) creditOverlay.classList.remove('open');
+});
+
+// ── Confirm generation ──
+creditConfirm.addEventListener('click', () => {
+  if (reportGenerating) return;
+  reportGenerating = true;
+
+  const result = deductCredits(CREDIT_CONFIG.REPORT_COST, `Generate report from "${state.trees.find(t => t.id === state.selectedTreeId)?.rootWord || 'unknown'}"`);
+  if (!result.success) {
+    showToast(t('credit.insufficient'));
+    reportGenerating = false;
+    creditOverlay.classList.remove('open');
+    return;
+  }
+
+  // Show generating state
+  reportBtn.classList.add('generating');
+  creditOverlay.classList.remove('open');
+  updateCreditUI();
+  updateCreditDetailPanel();
+
+  // Generate report
+  setTimeout(() => {
+    const pathNodes = collectPathNodes();
+    const reportHTML = generateReport(pathNodes);
+    reportPanelBody.innerHTML = reportHTML;
+    reportPanelOverlay.classList.add('open');
+    reportPanel.classList.add('open');
+    reportBtn.classList.remove('generating');
+    reportGenerating = false;
+  }, 600);
+});
+
+// ── Insufficient credits → show credit panel ──
+creditInsufficientRecharge.addEventListener('click', () => {
+  creditOverlay.classList.remove('open');
+  openCreditDetailPanel();
+});
+
+// ── Close report panel ──
+function closeReportPanel() {
+  reportPanelOverlay.classList.remove('open');
+  reportPanel.classList.remove('open');
+}
+reportClose.addEventListener('click', closeReportPanel);
+reportPanelOverlay.addEventListener('click', (e) => {
+  if (e.target === reportPanelOverlay) closeReportPanel();
+});
+
+// ── Copy report ──
+reportCopy.addEventListener('click', () => {
+  const text = reportPanelBody.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(t('report.copied'));
+  }).catch(() => {
+    showToast('Copy failed');
+  });
+});
+
+// ── Credit badge → detail panel ──
+creditBadge.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (creditDetailPanel.classList.contains('open')) {
+    creditDetailPanel.classList.remove('open');
+  } else {
+    openCreditDetailPanel();
+  }
+});
+
+function openCreditDetailPanel() {
+  updateCreditDetailPanel();
+  creditDetailPanel.classList.add('open');
+  folderPanel.classList.remove('open');
+}
+
+function updateCreditDetailPanel() {
+  const credits = getCredits();
+  document.getElementById('creditDetailBalance').textContent = formatCredits(credits);
+  const history = getCreditHistory();
+  const container = document.getElementById('creditDetailHistory');
+  if (history.length === 0) {
+    container.innerHTML = `<div class="credit-detail-empty" data-i18n="credit.noHistory">${t('credit.noHistory')}</div>`;
+  } else {
+    container.innerHTML = history.slice(0, 10).map(h => {
+      const d = new Date(h.time);
+      const tStr = d.toLocaleString(currentLang === 'en' ? 'en-US' : 'zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const cls = h.amount < 0 ? 'deduct' : '';
+      return `<div class="h-item"><span class="h-desc">${tStr} — ${h.detail}</span><span class="h-amount ${cls}">${h.amount < 0 ? '' : '+'}${h.amount}</span></div>`;
+    }).join('');
+  }
+}
+
+// ── Recharge button (placeholder) ──
+document.getElementById('creditRechargeBtn').addEventListener('click', () => {
+  showToast(t('credit.comingSoon'));
+});
+
+// Close credit detail on outside click
+document.addEventListener('click', (e) => {
+  if (creditDetailPanel.classList.contains('open') &&
+      !creditDetailPanel.contains(e.target) &&
+      !creditBadge.contains(e.target)) {
+    creditDetailPanel.classList.remove('open');
+  }
+});
+
+// ── Keyboard: Escape to close panels ──
+const origKeydown = document.onkeydown;
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (creditOverlay.classList.contains('open')) {
+      creditOverlay.classList.remove('open');
+      return;
+    }
+    if (reportPanel.classList.contains('open')) {
+      closeReportPanel();
+      return;
+    }
+    if (creditDetailPanel.classList.contains('open')) {
+      creditDetailPanel.classList.remove('open');
+      return;
+    }
+  }
+});
+
+// ── Init credit UI ──
+updateCreditUI();
+
+// ── JS readiness indicator ──
+console.log('%c[SynapseSpark] JS ready — version 2026-06-15-fixed',
+  'color:#7C3AED;font-weight:bold;font-size:14px');
+(function() {
+  const dot = document.createElement('div');
+  dot.id = 'jsReadyDot';
+  dot.title = 'JS loaded OK';
+  dot.style.cssText = 'position:fixed;bottom:12px;right:12px;width:10px;height:10px;' +
+    'border-radius:50%;background:#22C55E;z-index:9999;pointer-events:none;' +
+    'box-shadow:0 0 6px rgba(34,197,94,0.6);';
+  document.body.appendChild(dot);
+  setTimeout(() => { dot.style.opacity = '0'; dot.style.transition = 'opacity 0.6s'; }, 2000);
+})();
+</script>
+</body>
+</html>
